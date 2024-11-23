@@ -6,7 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { ImagePlus, FileText, Mic } from 'lucide-react'
 import { extractBusinessCard } from '@/actions/extract-business-card'
-import { OCRService } from '@/lib/services/ocr-service';
+import { OCRService } from '@/lib/services/ocr-service'
+import { processVoiceMemo } from '@/actions/process-voice-memo'
 
 interface FileUpload {
   file: File
@@ -91,8 +92,36 @@ export default function UploadForm() {
             )
           )
         }
+      } else if (file.type === 'audio') {
+        try {
+          const formData = new FormData();
+          formData.append('file', file.file);
+          
+          const response = await processVoiceMemo(formData);
+          console.log('Voice memo processing response:', response);
+          
+          setFiles(prev => 
+            prev.map((f, index) => 
+              index === i ? { 
+                ...f, 
+                progress: 100,
+                result: [
+                  '=== Structured Voice Memo Data ===',
+                  JSON.stringify(response.data, null, 2)
+                ].join('\n')
+              } : f
+            )
+          )
+        } catch (error) {
+          console.error('Error processing voice memo:', error);
+          setFiles(prev => 
+            prev.map((f, index) => 
+              index === i ? { ...f, progress: 100, result: 'Error processing voice memo: ' + (error as Error).message } : f
+            )
+          )
+        }
       }
-      // Handle other file types here...
+      // Handle text files here if needed...
     }
     
     setIsProcessing(false)
@@ -107,11 +136,11 @@ export default function UploadForm() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="flex flex-col space-y-2">
             <Button 
-              className="h-24 bg-indigo-600 hover:bg-indigo-700 flex flex-col items-center justify-center"
+              className="h-32 bg-gradient-to-br from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 flex flex-col items-center justify-center transition-all duration-200"
               onClick={() => handleFileSelect('image')}
               disabled={isProcessing}
             >
-              <ImagePlus className="h-6 w-6 mb-2" />
+              <ImagePlus className="h-12 w-12 mb-3" />
               <span className="text-lg font-medium">Upload Business Card Photos</span>
             </Button>
             <p className="text-sm text-muted-foreground text-center px-2">
@@ -121,11 +150,11 @@ export default function UploadForm() {
 
           <div className="flex flex-col space-y-2">
             <Button 
-              className="h-24 bg-blue-600 hover:bg-blue-700 flex flex-col items-center justify-center"
+              className="h-32 bg-gradient-to-br from-blue-400 to-blue-600 hover:from-blue-500 hover:to-blue-700 flex flex-col items-center justify-center transition-all duration-200"
               onClick={() => handleFileSelect('text')}
               disabled={isProcessing}
             >
-              <FileText className="h-6 w-6 mb-2" />
+              <FileText className="h-12 w-12 mb-3" />
               <span className="text-lg font-medium">Upload Text Notes</span>
             </Button>
             <p className="text-sm text-muted-foreground text-center px-2">
@@ -135,15 +164,15 @@ export default function UploadForm() {
 
           <div className="flex flex-col space-y-2">
             <Button 
-              className="h-24 bg-sky-600 hover:bg-sky-700 flex flex-col items-center justify-center"
+              className="h-32 bg-gradient-to-br from-cyan-400 to-sky-600 hover:from-cyan-500 hover:to-sky-700 flex flex-col items-center justify-center transition-all duration-200"
               onClick={() => handleFileSelect('audio')}
               disabled={isProcessing}
             >
-              <Mic className="h-6 w-6 mb-2" />
+              <Mic className="h-12 w-12 mb-3" />
               <span className="text-lg font-medium">Upload Voice Memos</span>
             </Button>
             <p className="text-sm text-muted-foreground text-center px-2">
-              MP3, WAV, M4A, and other audio formats
+              MP3, WAV, M4A, OGG, and other audio formats
             </p>
           </div>
         </div>
