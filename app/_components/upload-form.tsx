@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { ImagePlus, FileText, Mic } from 'lucide-react'
 import { extractBusinessCard } from '@/actions/extract-business-card'
-import { createWorker } from 'tesseract.js';
+import { OCRService } from '@/lib/services/ocr-service';
 
 interface FileUpload {
   file: File
@@ -59,58 +59,35 @@ export default function UploadForm() {
       
       if (file.type === 'image') {
         try {
-          // Convert image to base64
-          const reader = new FileReader()
-          reader.readAsDataURL(file.file)
+          const ocrResult = await OCRService.performOCR(file.file);
           
-          reader.onload = async () => {
-            // Update progress to 25%
-            setFiles(prev => 
-              prev.map((f, index) => 
-                index === i ? { ...f, progress: 25 } : f
-              )
-            )
-
-            // Initialize Tesseract
-            const worker = await createWorker('eng');
-            
-            // Update progress to 50%
-            setFiles(prev => 
-              prev.map((f, index) => 
-                index === i ? { ...f, progress: 50 } : f
-              )
-            )
-
-            // Perform OCR
-            const { data: { text } } = await worker.recognize(file.file);
-            await worker.terminate();
-
-            // Update progress to 75%
-            setFiles(prev => 
-              prev.map((f, index) => 
-                index === i ? { ...f, progress: 75 } : f
-              )
-            )
-            
-            // Process with server action
-            const response = await extractBusinessCard(text)
-            
-            // Update file with result and 100% progress
-            setFiles(prev => 
-              prev.map((f, index) => 
-                index === i ? { 
-                  ...f, 
-                  progress: 100,
-                  result: response.data?.rawText || 'No text extracted'
-                } : f
-              )
-            )
+          if (!ocrResult.success) {
+            throw new Error(ocrResult.error);
           }
-        } catch (error) {
-          console.error('Error processing image:', error)
+
+          const response = await extractBusinessCard(ocrResult.text!);
+          console.log('Server response:', response);
+          
           setFiles(prev => 
             prev.map((f, index) => 
-              index === i ? { ...f, progress: 100, result: 'Error processing image' } : f
+              index === i ? { 
+                ...f, 
+                progress: 100,
+                result: [
+                  '=== OCR Raw Output ===',
+                  ocrResult.text,
+                  '',
+                  '=== Structured Data ===',
+                  JSON.stringify(response.data, null, 2)
+                ].join('\n')
+              } : f
+            )
+          )
+        } catch (error) {
+          console.error('Error processing image:', error);
+          setFiles(prev => 
+            prev.map((f, index) => 
+              index === i ? { ...f, progress: 100, result: 'Error processing image: ' + (error as Error).message } : f
             )
           )
         }

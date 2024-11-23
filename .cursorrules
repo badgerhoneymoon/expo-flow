@@ -273,3 +273,7 @@ It uses Clerk for authentication.
 Follow these rules when working on payments.
 
 It uses Stripe for payments.
+
+### AI Rules
+
+- Use `gpt-4o-mini` for all LLM tasks unless otherwise specified
