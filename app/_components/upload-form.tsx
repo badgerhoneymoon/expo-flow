@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { ImagePlus, FileText, Mic } from 'lucide-react'
 import { extractBusinessCard } from '@/actions/extract-business-card'
+import { createWorker } from 'tesseract.js';
 
 interface FileUpload {
   file: File
@@ -63,7 +64,15 @@ export default function UploadForm() {
           reader.readAsDataURL(file.file)
           
           reader.onload = async () => {
-            const base64String = (reader.result as string).split(',')[1]
+            // Update progress to 25%
+            setFiles(prev => 
+              prev.map((f, index) => 
+                index === i ? { ...f, progress: 25 } : f
+              )
+            )
+
+            // Initialize Tesseract
+            const worker = await createWorker('eng');
             
             // Update progress to 50%
             setFiles(prev => 
@@ -71,9 +80,20 @@ export default function UploadForm() {
                 index === i ? { ...f, progress: 50 } : f
               )
             )
+
+            // Perform OCR
+            const { data: { text } } = await worker.recognize(file.file);
+            await worker.terminate();
+
+            // Update progress to 75%
+            setFiles(prev => 
+              prev.map((f, index) => 
+                index === i ? { ...f, progress: 75 } : f
+              )
+            )
             
-            // Extract text using Tesseract
-            const response = await extractBusinessCard(base64String)
+            // Process with server action
+            const response = await extractBusinessCard(text)
             
             // Update file with result and 100% progress
             setFiles(prev => 

@@ -1,6 +1,5 @@
 "use server"
 
-import { createWorker } from 'tesseract.js';
 import { BusinessCardSchema, BusinessCardExtractResponse } from '@/types/business-card-types';
 import OpenAI from 'openai';
 import { zodResponseFormat } from "openai/helpers/zod";
@@ -9,14 +8,8 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
 
-export async function extractBusinessCard(imageBase64: string): Promise<BusinessCardExtractResponse> {
+export async function extractBusinessCard(text: string): Promise<BusinessCardExtractResponse> {
   try {
-    // 1. OCR with Tesseract
-    const worker = await createWorker('eng');
-    const imageBuffer = Buffer.from(imageBase64, 'base64');
-    const { data: { text } } = await worker.recognize(imageBuffer);
-    await worker.terminate();
-
     // Log raw Tesseract output for testing
     console.log('Tesseract Raw Output:', text);
 
