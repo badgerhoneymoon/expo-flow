@@ -1,0 +1,275 @@
+# Project Instructions
+
+Use the project specification and guidelines as you build the ExpoFlow project.
+
+Write the complete code for every step. Do not get lazy.
+
+Your goal is to completely finish whatever the user asks for.
+
+## Overview
+
+### **MVP Project Description: B2B Lead Management Tool**
+
+**Project Overview:**
+The **B2B Lead Management MVP** is a streamlined software solution designed to help businesses efficiently capture, process, and enrich leads collected during trade shows and other networking events. The MVP focuses on automating the transformation of various data sources—such as business card photos, unstructured text notes, and voice memos—into organized and actionable lead profiles.
+
+**Key Features:**
+
+1. **Data Upload and Ingestion:**
+   - **Multiple Input Formats:** Users can upload business card photos, text notes, and voice memos through an intuitive drag-and-drop interface.
+   - **Automated Data Extraction:** Utilizes OCR (Optical Character Recognition) for extracting information from business cards and speech-to-text technology for transcribing voice memos.
+
+2. **Initial Lead Processing (First Iteration):**
+   - **Structured Lead Table:** Transforms extracted data into a structured format, displaying essential details such as Full Name, Company, Position, Email, and initial ICP (Ideal Customer Profile) assessments.
+   - **Enrichment Indicators:** Highlights missing information (e.g., LinkedIn profiles, Company Websites) that require further data enrichment.
+
+3. **Data Enrichment:**
+   - **Automated Enrichment:** Integrates with external APIs to fetch additional details like LinkedIn URLs and company websites.
+   - **Matching Algorithms:** Employs exact and fuzzy matching techniques to consolidate leads from multiple sources, ensuring each lead is accurately represented and duplicates are minimized.
+
+4. **Enhanced Lead Processing (Second Iteration):**
+   - **Comprehensive Lead Profiles:** Updates the initial lead table with enriched data, confirming ICP Fit and assigning ICP Scores to prioritize leads.
+   - **Referral Integration:** Automatically adds new leads derived from referrals mentioned in voice memos or text notes, maintaining a cohesive lead ecosystem.
+
+5. **User Interface and Experience:**
+   - **Company profile:** Company brief with key information such as company website, ICP, target job titles, and other relevant information.
+   - **Upload screen:** Provides an intuitive interface for users to upload their data from the trade show.
+   - **Lead tables:** Allows users to view and manage their leads on different stages of the process.
+   - **Export Functionality:** Enables users to export both initial and enriched lead tables in CSV format for integration with CRM systems or further analysis.
+
+**User Workflow:**
+
+0. **Company profile:** Users fill in the company profile and key information such as company website, ICP, target job titles, and other relevant information.
+1. **Upload Data:** Users upload business card photos, text notes, and voice memos captured during trade shows.
+2. **Process Data:** The system automatically extracts and organizes the data into the first iteration lead table, highlighting areas needing enrichment.
+3. **Enrich Data:** Users initiate the enrichment process, where the system fetches additional details and consolidates information from multiple sources.
+4. **Review and Export:** Users review the enriched lead profiles, manage follow-up actions, and export the data for CRM integration or targeted outreach.
+
+**Objective:**
+The primary goal of the MVP is to validate the core functionalities of the lead management process—data ingestion, extraction, enrichment, and organization—while providing a user-friendly interface that simplifies lead handling for B2B clients. By focusing on these essential features, the MVP aims to demonstrate significant value in improving lead accuracy, reducing manual data entry, and enhancing the efficiency of sales and marketing efforts.
+
+**Future Enhancements:**
+Based on user feedback and MVP performance, future iterations may include advanced analytics, deeper CRM integrations, automated follow-up scheduling, and machine learning-driven predictive lead scoring to further optimize the lead management process.
+
+---
+
+## Tech Stack
+
+- Frontend: Next.js, Tailwind, Shadcn, Framer Motion
+- Backend: Postgres, Supabase, Drizzle ORM, Server Actions
+- Auth: Clerk
+- Payments: Stripe
+- Deployment: Vercel
+
+## Project Structure
+
+### General Structure
+
+- `actions` - Server actions
+  - `db` - Database related actions
+  - Other actions
+- `app` - Next.js app router
+  - `api` - API routes
+  - `route` - An example route (each of these are only if needed)
+    - `_components` - One-off components for the route
+    - `layout.tsx` - Layout for the route
+    - `page.tsx` - Page for the route
+- `components` - Shared components
+  - `ui` - UI components
+  - `utilities` - Utility components
+- `db` - Database
+  - `migrations` - Database migrations (you never have to do anything in here)
+  - `queries` - Database queries
+  - `schema` - Database schemas
+- `lib` - Library code
+  - `hooks` - Custom hooks
+- `prompts` - Prompt files
+- `public` - Static assets
+- `types` - Type definitions
+
+### Project Specific Structure
+
+## Rules
+
+Follow these rules when building the project.
+
+### General Rules
+
+- Use `@` to import anything from the project unless otherwise specified
+- Use kebab case for all files and folders unless otherwise specified
+
+#### Env Rules
+
+- All environment variables should go in `.env.local`
+- Do not expose environment variables to the frontend
+- Use `NEXT_PUBLIC_` prefix for environment variables that need to be accessed from the frontend
+- You may import environment variables in server actions and components by using `process.env.VARIABLE_NAME`
+
+#### Type Rules
+
+Follow these rules when working with types.
+
+- When importing types, use `@/types`
+- Name files like `example-types.ts`
+- All types should go in `types`
+- Make sure to export the types in `types/index.ts`
+- Prefer interfaces over type aliases
+- If referring to db types, use `@/db/schema` such as `SelectAction` from `example-schema.ts`
+
+An example of a type:
+
+`types/actions-types.ts`
+
+```ts
+export type ActionState<T> = {
+  isSuccess: boolean
+  message: string
+  data?: T
+}
+```
+
+And exporting it:
+
+`types/index.ts`
+
+```ts
+export * from "./actions-types"
+```
+
+### Frontend Rules
+
+Follow these rules when working on the frontend.
+
+It uses Next.js, Tailwind, Shadcn, and Framer Motion.
+
+#### General Rules
+
+- Use `lucide-react` for icons
+- Use mobile first approach
+
+#### Components
+
+- When editing existing components preserve styles and classes - it's figma designs we should follow
+- Use divs instead of other html tags unless otherwise specified
+- Separate the main parts of a component's html with an extra blank line for visual spacing
+- Use actions, not queries, in the app
+- Always tag a component with either `use server` or `use client` at the top, including layouts and pages
+
+##### Organization
+
+- All components be named using kebab case like `example-component.tsx` unless otherwise specified
+- Put components in `/_components` in the route if one-off components
+- Put components in `/components` from the root if shared components
+
+##### Data Fetching
+
+- Fetch data in server components and pass down as props to client components such as `initialTodos`
+- Use server actions from `/actions` to mutate data
+
+##### Server Components
+
+- Use `"use server"` at the top of the file
+- Implement Suspense for asynchronous data fetching
+- Use a separate fetcher component for data loading (see example below)
+
+Example of a server page:
+
+```tsx
+"use server"
+
+import { Suspense } from "react"
+import { SomeAction } from "@/actions/some-actions"
+import SomeComponent from "./_components/some-component"
+import SomeSkeleton from "./_components/some-skeleton"
+
+export default async function ExampleServerPage({
+  params
+}: {
+  params: { id: string }
+}) {
+  return (
+    <Suspense fallback={<SomeSkeleton className="some-class" />}>
+      <SomeComponentFetcher id={params.id} />
+    </Suspense>
+  )
+}
+
+async function SomeComponentFetcher({ id }: { id: string }) {
+  const { data } = await SomeAction(id)
+
+  <SomeComponent className="some-class" initialData={data || []} id={id} />
+}
+```
+
+Example of a server component:
+
+```tsx
+"use server"
+
+interface ExampleServerComponentProps {
+  // Your props here
+}
+
+export async function ExampleServerComponent({
+  props
+}: ExampleServerComponentProps) {
+  // Your code here
+}
+```
+
+##### Client Components
+
+- Use `"use client"` at the top of the file
+
+Example of a client page:
+
+```tsx
+"use client"
+
+export default function ExampleClientPage() {
+  // Your code here
+}
+```
+
+Example of a client component:
+
+```tsx
+"use client"
+
+interface ExampleClientComponentProps {
+  // Your props here
+}
+
+export default function ExampleClientComponent({
+  props
+}: ExampleClientComponentProps) {
+  // Your code here
+}
+```
+
+### Backend Rules
+
+Follow these rules when working on the backend.
+
+It uses Postgres, Supabase, Drizzle ORM, and Server Actions.
+
+#### General Rules
+
+- Never generate migrations. You do not have to do anything in the `db/migrations` folder including migrations and metadata. Ignore it.
+- For database-specific rules and examples, refer to [Database Tables Guide](../info/new-table.md)
+
+### Auth Rules
+
+Follow these rules when working on auth.
+
+It uses Clerk for authentication.
+
+#### General Rules
+
+- Import the auth helper with `import { auth } from "@clerk/nextjs/server"` in server components
+
+### Payments Rules
+
+Follow these rules when working on payments.
+
+It uses Stripe for payments.
