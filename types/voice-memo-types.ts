@@ -9,7 +9,7 @@ import { z } from "zod";
 export const VoiceMemoSchema = z.object({
   mainInterest: z.string().optional(),
   company: z.string().optional(),
-  referral: z.object({
+  referral: z.object({                          // If we should follow up a different contact
     firstName: z.string().optional(),
     lastName: z.string().optional(),
     position: z.string().optional(),
