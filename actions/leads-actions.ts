@@ -2,7 +2,8 @@
 
 import { revalidatePath } from "next/cache"
 import * as queries from "@/db/queries/leads-queries"
-import type { NewLead } from "@/db/schema/leads-schema"
+import type { StructuredOutput } from "@/types/structured-output-types"
+import { structuredOutputToNewLead } from "@/lib/utils/structured-output-converter"
 
 export async function getLeads() {
   try {
@@ -23,29 +24,34 @@ export async function getLead(id: string) {
   }
 }
 
-export async function createLead(lead: NewLead) {
+export async function createLead(structuredOutput: StructuredOutput) {
   try {
     // Check for existing lead
     const existingLead = await queries.findLeadByNameAndCompany(
-      lead.firstName || "",
-      lead.lastName || "",
-      lead.company || ""
+      structuredOutput.firstName || "",
+      structuredOutput.lastName || "",
+      structuredOutput.company || ""
     )
 
     if (existingLead) {
-      // Update existing lead
-      const updatedLead = await queries.updateLead(existingLead.id, {
-        ...lead,
-        hasBusinessCard: lead.hasBusinessCard || existingLead.hasBusinessCard,
-        hasTextNote: lead.hasTextNote || existingLead.hasTextNote,
-        hasVoiceMemo: lead.hasVoiceMemo || existingLead.hasVoiceMemo,
-      })
+      // Merge with existing lead data
+      const updatedData = {
+        ...structuredOutputToNewLead(structuredOutput),
+        hasBusinessCard: structuredOutput.hasBusinessCard ?? existingLead.hasBusinessCard,
+        hasTextNote: structuredOutput.hasTextNote ?? existingLead.hasTextNote,
+        hasVoiceMemo: structuredOutput.hasVoiceMemo ?? existingLead.hasVoiceMemo,
+        rawBusinessCard: structuredOutput.rawBusinessCard || existingLead.rawBusinessCard,
+        rawTextNote: structuredOutput.rawTextNote || existingLead.rawTextNote || undefined,
+        rawVoiceMemo: structuredOutput.rawVoiceMemo || existingLead.rawVoiceMemo || undefined
+      }
+      
+      const updatedLead = await queries.updateLead(existingLead.id, updatedData)
       revalidatePath("/leads")
       return { success: true, data: updatedLead }
     }
 
-    // Create new lead
-    const newLead = await queries.createLead(lead)
+    // Create new lead - let Supabase handle the ID
+    const newLead = await queries.createLead(structuredOutputToNewLead(structuredOutput))
     revalidatePath("/leads")
     return { success: true, data: newLead }
   } catch (error) {
@@ -53,9 +59,19 @@ export async function createLead(lead: NewLead) {
   }
 }
 
-export async function updateLead(id: string, lead: Partial<NewLead>) {
+export async function updateLead(id: string, structuredOutput: Partial<StructuredOutput>) {
   try {
-    const updatedLead = await queries.updateLead(id, lead)
+    const existingLead = await queries.getLead(id)
+    if (!existingLead) throw new Error("Lead not found")
+    
+    const updateData = {
+      ...structuredOutputToNewLead({
+        ...structuredOutput,
+        referral: structuredOutput.referral ?? existingLead.referral
+      } as StructuredOutput)
+    }
+    
+    const updatedLead = await queries.updateLead(id, updateData)
     revalidatePath("/leads")
     return { success: true, data: updatedLead }
   } catch (error) {

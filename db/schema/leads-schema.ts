@@ -1,8 +1,8 @@
-import { pgTable, text, timestamp, boolean } from "drizzle-orm/pg-core"
+import { pgTable, text, timestamp, boolean, uuid } from "drizzle-orm/pg-core"
 
 export const leads = pgTable("leads", {
   // Core Identification (handled by Supabase)
-  id: text("id").primaryKey(),
+  id: uuid("id").primaryKey().defaultRandom(),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 
@@ -38,7 +38,7 @@ export const leads = pgTable("leads", {
   companyBusiness: text("company_business"),
 
   // Referral Info
-  referral: boolean("referral").default(false), // If we should follow up a different contact - create new lead
+  referral: boolean("referral").default(false),
   
   // Qualification Info
   isTarget: boolean("is_target").default(false),
@@ -46,9 +46,9 @@ export const leads = pgTable("leads", {
   qualificationReason: text("qualification_reason"),
 
   // Follow-up
-  contactTiming: text("contact_timing"), // Raw timing text (e.g., "next week", "after December")
-  contactDate: text("contact_date"), // Structured YYYY-MM-DD date - when to follow up
-  followUpTemplate: text("follow_up_template"), // Template to use for follow up
+  contactTiming: text("contact_timing"),
+  contactDate: text("contact_date"),
+  followUpTemplate: text("follow_up_template"),
   
   // Raw Data Storage
   rawBusinessCard: text("raw_business_card"),

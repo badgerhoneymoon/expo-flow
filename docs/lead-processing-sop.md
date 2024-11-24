@@ -11,15 +11,11 @@ This document outlines the step-by-step process for lead capture, enrichment, an
 ## Process Flow
 
 ### 1. Initial Lead Capture (Business Cards)
-- User uploads business card images
+- User uploads business card images - should be able to upload multiple
 - System extracts data using OCR
-- Creates initial lead entries with:
-  - First Name
-  - Last Name
-  - Job Title
-  - Company
-  - Email
-  - Source Icon (📸)
+- It's structured using GPT-4o-mini
+- Creates initial new lead entries
+- Shows the table of leads in the UI
 
 ### 2. Text Notes Enrichment
 - User uploads text notes
