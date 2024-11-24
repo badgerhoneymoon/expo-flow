@@ -102,13 +102,43 @@ export default function LeadsTable({ leads }: LeadsTableProps) {
       <CardContent className="overflow-x-auto">
         <Table>
           <TableHeader>
-            <TableRow>
-              <TableHead>Basic Info</TableHead>
-              <TableHead>Contact</TableHead>
-              <TableHead>Company</TableHead>
-              <TableHead>Qualification</TableHead>
-              <TableHead>Sources</TableHead>
-              <TableHead>Follow-up</TableHead>
+            <TableRow className="border-b-2 border-border hover:bg-transparent">
+              <TableHead className="font-semibold text-foreground">
+                <div className="flex flex-col gap-1">
+                  <span className="text-base">Basic Info</span>
+                  <span className="font-normal text-xs text-muted-foreground">Name & Position</span>
+                </div>
+              </TableHead>
+              <TableHead className="font-semibold text-foreground">
+                <div className="flex flex-col gap-1">
+                  <span className="text-base">Contact</span>
+                  <span className="font-normal text-xs text-muted-foreground">Email & LinkedIn</span>
+                </div>
+              </TableHead>
+              <TableHead className="font-semibold text-foreground">
+                <div className="flex flex-col gap-1">
+                  <span className="text-base">Company</span>
+                  <span className="font-normal text-xs text-muted-foreground">Name & Website</span>
+                </div>
+              </TableHead>
+              <TableHead className="font-semibold text-foreground">
+                <div className="flex flex-col gap-1">
+                  <span className="text-base">Qualification</span>
+                  <span className="font-normal text-xs text-muted-foreground">Target & ICP Status</span>
+                </div>
+              </TableHead>
+              <TableHead className="font-semibold text-foreground">
+                <div className="flex flex-col gap-1">
+                  <span className="text-base">Sources</span>
+                  <span className="font-normal text-xs text-muted-foreground">Data Origins</span>
+                </div>
+              </TableHead>
+              <TableHead className="font-semibold text-foreground">
+                <div className="flex flex-col gap-1">
+                  <span className="text-base">Follow-up</span>
+                  <span className="font-normal text-xs text-muted-foreground">Next Steps & Timing</span>
+                </div>
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
