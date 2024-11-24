@@ -37,6 +37,9 @@ export async function extractBusinessCard(text: string): Promise<StructuredOutpu
       const enrichedData: StructuredOutput = {
         // OpenAI parsed data
         ...result.data,
+        // Add defaults for required fields
+        nextSteps: result.data.nextSteps || "N/A",
+        notes: result.data.notes || "N/A",
         // Required enum fields with defaults
         isTarget: result.data.isTarget ?? TargetStatus.UNKNOWN,
         icpFit: result.data.icpFit ?? ICPFitStatus.UNKNOWN,

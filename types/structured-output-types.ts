@@ -39,10 +39,10 @@ export const StructuredOutputSchema = z.object({
   email: z.string().optional(),
   linkedin: z.string().optional(),
 
-  // Internal enrichment specific fields
+  // Internal enrichment specific fields - now required but without defaults
   mainInterest: z.string().optional(),
-  nextSteps: z.string().optional(),
-  notes: z.string().optional(),
+  nextSteps: z.string(),
+  notes: z.string(),
 
   // External enrichment specific fields
   companyIndustry: z.string().optional(),
@@ -54,8 +54,8 @@ export const StructuredOutputSchema = z.object({
   referralData: ReferralSchema.optional(),
 
   // Qualification Info
-  isTarget: z.nativeEnum(TargetStatus).optional().default(TargetStatus.UNKNOWN),
-  icpFit: z.nativeEnum(ICPFitStatus).optional().default(ICPFitStatus.UNKNOWN),
+  isTarget: z.nativeEnum(TargetStatus).optional(),
+  icpFit: z.nativeEnum(ICPFitStatus).optional(),
   qualificationReason: z.string().optional(),
 
   // Follow-up

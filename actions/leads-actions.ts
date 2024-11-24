@@ -106,6 +106,9 @@ export async function createLead(structuredOutput: StructuredOutput) {
         companyBusiness: sourceLeadWithEnrichedData.companyBusiness || undefined,
         // Inherit main interest from source lead
         mainInterest: sourceLeadWithEnrichedData.mainInterest || undefined,
+        // Required fields with defaults
+        nextSteps: "Follow up with referred contact",
+        notes: `Referred by ${sourceLeadWithEnrichedData.firstName || ''} ${sourceLeadWithEnrichedData.lastName || ''}`,
         // Referral specific data
         contactTiming: structuredOutput.referralData.contactTiming,
         contactDate: structuredOutput.referralData.contactDate,
@@ -118,8 +121,7 @@ export async function createLead(structuredOutput: StructuredOutput) {
         icpFit: ICPFitStatus.UNKNOWN, // Keep ICP as UNKNOWN since we need more info
         qualificationReason: structuredOutput.referralData.qualificationReason,
         // This person was referred by someone
-        referral: true,
-        notes: `Referred by ${sourceLeadWithEnrichedData.firstName || ''} ${sourceLeadWithEnrichedData.lastName || ''}`
+        referral: true
       }
 
       // Create the referred lead
