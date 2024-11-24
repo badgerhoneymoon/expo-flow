@@ -102,15 +102,16 @@ IMPORTANT: If any information is unclear, ambiguous, or not explicitly mentioned
      * Use current year unless next year explicitly stated
 
 5. Referral Handling:
-   - Set referral to true if someone else is mentioned to contact
-   - When referral is true, MUST capture in referralData:
+   - Set referral to true ONLY if another person to contact is explicitly mentioned
+   - referralData should ONLY be included when referral is true
+   - When (and only when) referral is true, capture in referralData:
      * First Name & Last Name (REQUIRED):
        - Follow same name rules as above
        - If only partial name mentioned, use "N/A" for missing part
        - Examples:
-         - "talk to Sarah" -> firstName: "Sarah", lastName: "N/A"
-         - "contact Smith" -> firstName: "N/A", lastName: "Smith"
-         - "reach someone else" -> firstName: "N/A", lastName: "N/A"
+         - "talk to Sarah" -> referral: true, referralData: { firstName: "Sarah", lastName: "N/A" }
+         - "contact Smith" -> referral: true, referralData: { firstName: "N/A", lastName: "Smith" }
+         - "no referral mentioned" -> referral: false (no referralData included)
      * Position (if mentioned)
      * Contact Timing (when to reach out)
      * Contact Date (specific date if mentioned)
@@ -122,9 +123,10 @@ IMPORTANT: If any information is unclear, ambiguous, or not explicitly mentioned
    - "Better reach out to Mike next week" -> referralData.contactTiming: "next week"
    
    Important:
-   - Set referral to true whenever another person to contact is mentioned
-   - The referral flag here indicates "contains referral data"
-   - Only capture information about who to contact next
+   - ONLY include referralData when referral is true
+   - If no referral is mentioned, set referral: false and omit referralData completely
+   - When included, referralData must have at least firstName and lastName
+   - Only capture information about the referred person
    - Only include timing that relates to when to contact the referred person
 
 Remember:

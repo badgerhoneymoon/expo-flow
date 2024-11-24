@@ -26,7 +26,7 @@ export function structuredOutputToNewLead(output: StructuredOutput): Omit<NewLea
 
     // Referral & Qualification
     referral: output.referral,
-    isTarget: output.isTarget ?? false,
+    isTarget: output.isTarget,
     icpFit: output.icpFit || null,
     qualificationReason: output.qualificationReason || null,
 
