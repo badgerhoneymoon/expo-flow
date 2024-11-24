@@ -138,6 +138,7 @@ export default function LeadsPage() {
     "Lead Type",
     "Full Name",
     "Company",
+    "Company Info",
     "Position",
     "Email",
     "LinkedIn",
@@ -185,6 +186,9 @@ export default function LeadsPage() {
                       <TableCell>{lead.leadType}</TableCell>
                       <TableCell>{lead.fullName}</TableCell>
                       <TableCell>{lead.company}</TableCell>
+                      <TableCell>
+                        <span className="text-muted-foreground">—</span>
+                      </TableCell>
                       <TableCell>{lead.position}</TableCell>
                       <TableCell>
                         <a href={`mailto:${lead.email}`} className="text-blue-600 hover:text-blue-800 hover:underline">
@@ -250,6 +254,7 @@ export default function LeadsPage() {
                       <TableCell>{lead.leadType}</TableCell>
                       <TableCell>{lead.fullName}</TableCell>
                       <TableCell>{lead.company}</TableCell>
+                      <TableCell><LongTextCell content={lead.companyInfo} /></TableCell>
                       <TableCell>{lead.position}</TableCell>
                       <TableCell>
                         <a href={`mailto:${lead.email}`} className="text-blue-600 hover:text-blue-800 hover:underline">

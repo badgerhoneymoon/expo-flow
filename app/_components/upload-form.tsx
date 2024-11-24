@@ -8,6 +8,7 @@ import { ImagePlus, FileText, Mic } from 'lucide-react'
 import { extractBusinessCard } from '@/actions/extract-business-card'
 import { OCRService } from '@/lib/services/ocr-service'
 import { processVoiceMemo } from '@/actions/process-voice-memo'
+import { processTextNotes } from '@/actions/process-text-notes'
 
 interface FileUpload {
   file: File
@@ -120,8 +121,32 @@ export default function UploadForm() {
             )
           )
         }
+      } else if (file.type === 'text') {
+        try {
+          const text = await file.file.text(); // Read the text file
+          const response = await processTextNotes(text);
+          
+          setFiles(prev => 
+            prev.map((f, index) => 
+              index === i ? { 
+                ...f, 
+                progress: 100,
+                result: [
+                  '=== Structured Text Notes ===',
+                  JSON.stringify(response.data, null, 2)
+                ].join('\n')
+              } : f
+            )
+          )
+        } catch (error) {
+          console.error('Error processing text notes:', error);
+          setFiles(prev => 
+            prev.map((f, index) => 
+              index === i ? { ...f, progress: 100, result: 'Error processing text: ' + (error as Error).message } : f
+            )
+          )
+        }
       }
-      // Handle text files here if needed...
     }
     
     setIsProcessing(false)

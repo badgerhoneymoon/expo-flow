@@ -9,6 +9,7 @@ export interface FirstIterationLead {
   companyWebsite: string | null
   extractedVoiceMemo: string | null
   gistOfMemo: string | null
+  textNotes: string[]
   icpFit: 'Unknown' | 'Yes' | 'No'
   icpScore: string | null
   because: string
@@ -24,12 +25,13 @@ export const mockLeadsFirstIteration: FirstIterationLead[] = [
     leadType: "Only Business Card Photo",
     fullName: "Emily Johnson",
     company: "Tech Innovators",
-    position: "Senior Sales Manager",
+    position: "Facility Manager",
     email: "emily.johnson@techinnovators.com",
     linkedIn: null,
     companyWebsite: null,
     extractedVoiceMemo: null,
     gistOfMemo: null,
+    textNotes: [],
     icpFit: "Unknown",
     icpScore: null,
     because: "Requires company website and LinkedIn to determine ICP fit",
@@ -59,6 +61,7 @@ export const mockLeadsFirstIteration: FirstIterationLead[] = [
       },
       nextSteps: "Reach out to Jane Doe to explore collaboration opportunities"
     }),
+    textNotes: [],
     icpFit: "Yes",
     icpScore: "Medium",
     because: "Company website shows interest in EV sustainability projects",
@@ -78,9 +81,15 @@ export const mockLeadsFirstIteration: FirstIterationLead[] = [
     companyWebsite: null,
     extractedVoiceMemo: null,
     gistOfMemo: null,
+    textNotes: [
+      "Sarah Williams - Marketing Associate at Future Ventures",
+      "Small local business, annual budget under $10K",
+      "Looking for single charging station",
+      "Can't afford enterprise-level solution",
+    ],
     icpFit: "No",
     icpScore: null,
-    because: "Disqualified based on current needs alignment",
+    because: "Budget too small for enterprise charging solutions - seeking residential-level equipment",
     targetForOutreach: false,
     followUpDate: null,
     customizedFollowUp: null,
