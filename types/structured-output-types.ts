@@ -13,6 +13,17 @@ export enum ICPFitStatus {
   UNKNOWN = "UNKNOWN"
 }
 
+// New schema for referrals
+export const ReferralSchema = z.object({
+  firstName: z.string().optional(),
+  lastName: z.string().optional(),
+  position: z.string().optional(),
+  contactTiming: z.string().optional(),
+  contactDate: z.string().optional(),
+})
+
+export type Referral = z.infer<typeof ReferralSchema>
+
 // This is our Zod schema for OpenAI's structured output
 export const StructuredOutputSchema = z.object({
   // Basic Lead Info
@@ -38,6 +49,7 @@ export const StructuredOutputSchema = z.object({
 
   // Referral Info
   referral: z.boolean().optional(),
+  referralData: ReferralSchema.optional(),
 
   // Qualification Info
   isTarget: z.nativeEnum(TargetStatus).optional().default(TargetStatus.UNKNOWN),

@@ -2,7 +2,11 @@
 
 import { revalidatePath } from "next/cache"
 import * as queries from "@/db/queries/leads-queries"
-import type { StructuredOutput } from "@/types/structured-output-types"
+import { 
+  StructuredOutput,
+  TargetStatus,
+  ICPFitStatus 
+} from "@/types/structured-output-types"
 import { structuredOutputToNewLead } from "@/lib/utils/structured-output-converter"
 
 export async function getLeads() {
@@ -32,6 +36,8 @@ export async function createLead(structuredOutput: StructuredOutput) {
       structuredOutput.lastName || "",
       structuredOutput.company || ""
     )
+
+    let mainLeadResult;
 
     if (existingLead) {
       // Merge with existing lead data, preserving existing values unless new data is provided
@@ -75,14 +81,44 @@ export async function createLead(structuredOutput: StructuredOutput) {
       }
       
       const updatedLead = await queries.updateLead(existingLead.id, updatedData)
-      revalidatePath("/leads")
-      return { success: true, data: updatedLead }
+      mainLeadResult = { success: true, data: updatedLead }
+    } else {
+      // Create new lead - let Supabase handle the ID
+      const newLead = await queries.createLead(structuredOutputToNewLead(structuredOutput))
+      mainLeadResult = { success: true, data: newLead }
     }
 
-    // Create new lead - let Supabase handle the ID
-    const newLead = await queries.createLead(structuredOutputToNewLead(structuredOutput))
+    // Handle referral if present
+    if (structuredOutput.referral && structuredOutput.referralData) {
+      // Create a new lead for the referral, inheriting company info from the main lead
+      const referralLead: StructuredOutput = {
+        firstName: structuredOutput.referralData.firstName,
+        lastName: structuredOutput.referralData.lastName,
+        jobTitle: structuredOutput.referralData.position,
+        company: structuredOutput.company, // Inherit from main lead
+        website: structuredOutput.website, // Inherit from main lead
+        companyIndustry: structuredOutput.companyIndustry, // Inherit from main lead
+        companySize: structuredOutput.companySize, // Inherit from main lead
+        companyBusiness: structuredOutput.companyBusiness, // Inherit from main lead
+        contactTiming: structuredOutput.referralData.contactTiming,
+        contactDate: structuredOutput.referralData.contactDate,
+        // Set source flags based on where the referral came from
+        hasBusinessCard: structuredOutput.hasBusinessCard,
+        hasTextNote: structuredOutput.hasTextNote,
+        hasVoiceMemo: structuredOutput.hasVoiceMemo,
+        // Default values for required fields
+        isTarget: TargetStatus.UNKNOWN,
+        icpFit: ICPFitStatus.UNKNOWN,
+        referral: false, // This is a referred lead, not a referrer
+        notes: `Referred by ${structuredOutput.firstName} ${structuredOutput.lastName}`
+      }
+
+      await createLead(referralLead)
+    }
+
     revalidatePath("/leads")
-    return { success: true, data: newLead }
+    return mainLeadResult
+
   } catch (error) {
     return { success: false, error: "Failed to create lead" }
   }
