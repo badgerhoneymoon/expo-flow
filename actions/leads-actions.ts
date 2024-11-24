@@ -34,15 +34,44 @@ export async function createLead(structuredOutput: StructuredOutput) {
     )
 
     if (existingLead) {
-      // Merge with existing lead data
+      // Merge with existing lead data, preserving existing values unless new data is provided
       const updatedData = {
-        ...structuredOutputToNewLead(structuredOutput),
-        hasBusinessCard: structuredOutput.hasBusinessCard ?? existingLead.hasBusinessCard,
-        hasTextNote: structuredOutput.hasTextNote ?? existingLead.hasTextNote,
-        hasVoiceMemo: structuredOutput.hasVoiceMemo ?? existingLead.hasVoiceMemo,
+        ...existingLead, // Start with all existing data
+        // Only update fields if new data has non-null values
+        firstName: structuredOutput.firstName || existingLead.firstName,
+        lastName: structuredOutput.lastName || existingLead.lastName,
+        jobTitle: structuredOutput.jobTitle || existingLead.jobTitle,
+        company: structuredOutput.company || existingLead.company,
+        website: structuredOutput.website || existingLead.website,
+        email: structuredOutput.email || existingLead.email,
+        linkedin: structuredOutput.linkedin || existingLead.linkedin,
+        mainInterest: structuredOutput.mainInterest || existingLead.mainInterest,
+        nextSteps: structuredOutput.nextSteps || existingLead.nextSteps,
+        notes: structuredOutput.notes || existingLead.notes,
+        companyIndustry: structuredOutput.companyIndustry || existingLead.companyIndustry,
+        companySize: structuredOutput.companySize || existingLead.companySize,
+        companyBusiness: structuredOutput.companyBusiness || existingLead.companyBusiness,
+        qualificationReason: structuredOutput.qualificationReason || existingLead.qualificationReason,
+        contactTiming: structuredOutput.contactTiming || existingLead.contactTiming,
+        contactDate: structuredOutput.contactDate || existingLead.contactDate,
+        followUpTemplate: structuredOutput.followUpTemplate || existingLead.followUpTemplate,
+        
+        // Update source tracking flags (OR them together)
+        hasBusinessCard: structuredOutput.hasBusinessCard || existingLead.hasBusinessCard,
+        hasTextNote: structuredOutput.hasTextNote || existingLead.hasTextNote,
+        hasVoiceMemo: structuredOutput.hasVoiceMemo || existingLead.hasVoiceMemo,
+        
+        // Preserve raw data from all sources
         rawBusinessCard: structuredOutput.rawBusinessCard || existingLead.rawBusinessCard,
-        rawTextNote: structuredOutput.rawTextNote || existingLead.rawTextNote || undefined,
-        rawVoiceMemo: structuredOutput.rawVoiceMemo || existingLead.rawVoiceMemo || undefined
+        rawTextNote: structuredOutput.rawTextNote || existingLead.rawTextNote,
+        rawVoiceMemo: structuredOutput.rawVoiceMemo || existingLead.rawVoiceMemo,
+        
+        // Special handling for enum fields - only update if new value is more certain
+        isTarget: structuredOutput.isTarget === 'UNKNOWN' ? existingLead.isTarget : structuredOutput.isTarget,
+        icpFit: structuredOutput.icpFit === 'UNKNOWN' ? existingLead.icpFit : structuredOutput.icpFit,
+        
+        // Special handling for boolean fields
+        referral: structuredOutput.referral || existingLead.referral,
       }
       
       const updatedLead = await queries.updateLead(existingLead.id, updatedData)
