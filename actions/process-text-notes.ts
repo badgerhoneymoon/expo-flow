@@ -10,11 +10,21 @@ import {
 import { StructuredOutputService } from "@/lib/services/structured-output-service"
 import { getStructuredOutputPrompt } from '@/lib/prompts/structured-output-prompt'
 import { createLead } from './leads-actions'
+import { getCompanyProfile } from './company-profile-actions'
 
 export async function processTextNotes(text: string): Promise<StructuredOutputResponse> {
   try {
     console.log('Text Notes Input:', text)
-    const prompt = getStructuredOutputPrompt(new Date().toISOString().split('T')[0])
+    
+    // Get company profile data
+    const companyProfile = await getCompanyProfile()
+    
+    const prompt = getStructuredOutputPrompt(
+      new Date().toISOString().split('T')[0],
+      companyProfile.targetJobTitles,
+      companyProfile.icpDescription,
+      companyProfile.targetMarkets
+    )
     
     const result = await StructuredOutputService.structureText<StructuredOutput>(
       text,

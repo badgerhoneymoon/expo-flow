@@ -11,6 +11,7 @@ import { WhisperService } from "@/lib/services/whisper-service"
 import { StructuredOutputService } from "@/lib/services/structured-output-service"
 import { getStructuredOutputPrompt } from '@/lib/prompts/structured-output-prompt'
 import { createLead } from './leads-actions'
+import { getCompanyProfile } from './company-profile-actions'
 
 export async function processVoiceMemo(audioData: FormData): Promise<StructuredOutputResponse> {
   try {
@@ -21,6 +22,9 @@ export async function processVoiceMemo(audioData: FormData): Promise<StructuredO
         error: "No audio file provided"
       }
     }
+
+    // Get company profile data
+    const companyProfile = await getCompanyProfile()
 
     // Transcribe audio to text
     const { success: transcriptionSuccess, text, error: transcriptionError } = 
@@ -34,7 +38,12 @@ export async function processVoiceMemo(audioData: FormData): Promise<StructuredO
     }
 
     console.log('Whisper Transcription:', text)
-    const prompt = getStructuredOutputPrompt(new Date().toISOString().split('T')[0])
+    const prompt = getStructuredOutputPrompt(
+      new Date().toISOString().split('T')[0],
+      companyProfile.targetJobTitles,
+      companyProfile.icpDescription,
+      companyProfile.targetMarkets
+    )
     
     const result = await StructuredOutputService.structureText<StructuredOutput>(
       text,

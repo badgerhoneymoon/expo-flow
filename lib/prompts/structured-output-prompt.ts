@@ -1,4 +1,9 @@
-export const getStructuredOutputPrompt = (currentDate: string) => `
+export const getStructuredOutputPrompt = (
+  currentDate: string, 
+  targetJobTitles: string,
+  icpDescription: string,
+  targetMarkets: string
+) => `
 Extract and structure information with these rules:
 
 IMPORTANT: If any information is unclear, ambiguous, or not explicitly mentioned - leave it empty. DO NOT make assumptions or guess.
@@ -54,16 +59,27 @@ IMPORTANT: If any information is unclear, ambiguous, or not explicitly mentioned
 
 4. Qualification Assessment:
    - Is Target:
-     * YES: Clearly matches target profile
-     * NO: Clearly doesn't match target profile
-     * UNKNOWN: Not enough information to determine
+     * YES: Job title matches or is similar to any of these target titles: ${targetJobTitles}
+       Examples of matches:
+       - Exact match: "Facility Manager" matches "Facility Manager"
+       - Similar role: "Head of Facilities" matches "Facility Manager"
+       - Equivalent title: "Property Operations Manager" matches "Property Manager"
+     * NO: Job title clearly doesn't match any target titles
+     * UNKNOWN: Job title is missing or unclear
+   
    - ICP Fit:
-     * YES: Strong match with ideal customer profile
-     * NO: Definitely not a match
-     * UNKNOWN: Insufficient information
+     * YES: Organization matches these criteria:
+       - Industry/Market: ${targetMarkets}
+       - Profile: ${icpDescription}
+     * NO: Organization clearly doesn't match ICP criteria
+     * UNKNOWN: Insufficient information about the organization
+   
    - Qualification Reason:
-     * Document specific reasons for the assessment
-     * Include key factors that led to the decision
+     * For Target YES: Explain which target title it matches and how
+     * For Target NO: Explain why the role is not relevant
+     * For ICP YES: Explain which ICP criteria are met
+     * For ICP NO: Explain which critical ICP criteria are missing
+     * For UNKNOWN: List what information is missing for proper assessment
 
 5. Follow-up Information:
    - Contact Timing:
