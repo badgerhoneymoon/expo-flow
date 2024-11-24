@@ -1,5 +1,4 @@
 import { pgTable, text, timestamp, boolean, uuid, pgEnum } from "drizzle-orm/pg-core"
-import { TargetStatus, ICPFitStatus } from "@/types/structured-output-types"
 
 // Create Postgres enums with explicit values
 export const targetStatusEnum = pgEnum('target_status', ['YES', 'NO', 'UNKNOWN'] as const)

@@ -14,11 +14,6 @@ export function structuredOutputToNewLead(output: StructuredOutput): Omit<NewLea
     email: output.email || null,
     linkedin: output.linkedin || null,
 
-    // Event Context
-    eventName: output.eventName || null,
-    eventStartDate: output.eventStartDate ? new Date(output.eventStartDate) : null,
-    eventEndDate: output.eventEndDate ? new Date(output.eventEndDate) : null,
-
     // Internal enrichment
     mainInterest: output.mainInterest || null,
     nextSteps: output.nextSteps || null,

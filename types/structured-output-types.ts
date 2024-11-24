@@ -15,11 +15,6 @@ export enum ICPFitStatus {
 
 // This is our Zod schema for OpenAI's structured output
 export const StructuredOutputSchema = z.object({
-  // Event Context
-  eventName: z.string().optional(),
-  eventStartDate: z.string().optional(), 
-  eventEndDate: z.string().optional(),
-
   // Basic Lead Info
   firstName: z.string().optional(),
   lastName: z.string().optional(),

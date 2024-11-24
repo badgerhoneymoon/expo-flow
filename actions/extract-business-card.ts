@@ -1,31 +1,68 @@
 "use server"
 
-import { StructuredOutputSchema, StructuredOutputResponse, StructuredOutput } from '@/types/structured-output-types';
-import { StructuredOutputService } from '@/lib/services/structured-output-service';
-import { getStructuredOutputPrompt } from '@/lib/prompts/structured-output-prompt';
+import { 
+  StructuredOutputSchema, 
+  StructuredOutputResponse, 
+  StructuredOutput,
+  TargetStatus, 
+  ICPFitStatus 
+} from '@/types/structured-output-types'
+import { StructuredOutputService } from '@/lib/services/structured-output-service'
+import { getStructuredOutputPrompt } from '@/lib/prompts/structured-output-prompt'
+import { createLead } from './leads-actions'
 
 export async function extractBusinessCard(text: string): Promise<StructuredOutputResponse> {
   try {
-    console.log('Tesseract Raw Output:', text);
-    const prompt = getStructuredOutputPrompt(new Date().toISOString().split('T')[0]);
-    const result = await StructuredOutputService.structureText(
+    console.log('Tesseract Raw Output:', text)
+    const prompt = getStructuredOutputPrompt(new Date().toISOString().split('T')[0])
+    
+    const result = await StructuredOutputService.structureText<StructuredOutput>(
       text,
       StructuredOutputSchema,
       prompt
-    ) as StructuredOutputResponse;
+    )
 
     if (result.success && result.data) {
-      const data = result.data as StructuredOutput;
-      data.hasBusinessCard = true;
-      data.rawBusinessCard = text;
+      // Add business card specific flags and required fields
+      const enrichedData: StructuredOutput = {
+        // OpenAI parsed data
+        ...result.data,
+        // Required enum fields with defaults
+        isTarget: result.data.isTarget ?? TargetStatus.UNKNOWN,
+        icpFit: result.data.icpFit ?? ICPFitStatus.UNKNOWN,
+        // Source tracking
+        hasBusinessCard: true,
+        hasTextNote: false,
+        hasVoiceMemo: false,
+        // Raw data
+        rawBusinessCard: text,
+        rawTextNote: undefined,
+        rawVoiceMemo: undefined,
+        // Required boolean with default
+        referral: result.data.referral ?? false
+      }
+
+      // Save to database
+      const dbResult = await createLead(enrichedData)
+      if (!dbResult.success) {
+        throw new Error(dbResult.error)
+      }
+
+      return {
+        success: true,
+        data: enrichedData
+      }
     }
 
-    return result;
-  } catch (error) {
-    console.error('Error extracting business card:', error);
     return {
       success: false,
-      error: 'Failed to extract business card data'
-    };
+      error: "Failed to structure data"
+    }
+  } catch (error) {
+    console.error('Error extracting business card:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to extract business card data'
+    }
   }
 } 
