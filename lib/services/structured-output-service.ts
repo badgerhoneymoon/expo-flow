@@ -17,7 +17,7 @@ export class StructuredOutputService {
     text: string, 
     schema: z.ZodSchema, 
     prompt: string,
-    modelName: string = "gpt-4o-mini"
+    modelName: string = "gpt-4o"
   ): Promise<StructuredOutputResponse<T>> {
     try {
       const completion = await openai.beta.chat.completions.parse({

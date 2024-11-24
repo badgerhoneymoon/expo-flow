@@ -43,39 +43,39 @@ export async function createLead(structuredOutput: StructuredOutput) {
       // Merge with existing lead data, preserving existing values unless new data is provided
       const updatedData = {
         ...existingLead,
-        firstName: structuredOutput.firstName || existingLead.firstName,
-        lastName: structuredOutput.lastName || existingLead.lastName,
-        jobTitle: structuredOutput.jobTitle || existingLead.jobTitle,
-        company: structuredOutput.company || existingLead.company,
-        website: structuredOutput.website || existingLead.website,
-        email: structuredOutput.email || existingLead.email,
-        linkedin: structuredOutput.linkedin || existingLead.linkedin,
-        mainInterest: structuredOutput.mainInterest || existingLead.mainInterest,
-        nextSteps: structuredOutput.nextSteps || existingLead.nextSteps,
-        notes: structuredOutput.notes || existingLead.notes,
-        companyIndustry: structuredOutput.companyIndustry || existingLead.companyIndustry,
-        companySize: structuredOutput.companySize || existingLead.companySize,
-        companyBusiness: structuredOutput.companyBusiness || existingLead.companyBusiness,
-        qualificationReason: structuredOutput.qualificationReason || existingLead.qualificationReason,
-        contactTiming: structuredOutput.contactTiming || existingLead.contactTiming,
-        contactDate: structuredOutput.contactDate || existingLead.contactDate,
-        followUpTemplate: structuredOutput.followUpTemplate || existingLead.followUpTemplate,
+        firstName: structuredOutput.firstName === "N/A" ? existingLead.firstName : (structuredOutput.firstName || existingLead.firstName),
+        lastName: structuredOutput.lastName === "N/A" ? existingLead.lastName : (structuredOutput.lastName || existingLead.lastName),
+        jobTitle: structuredOutput.jobTitle === "N/A" ? existingLead.jobTitle : (structuredOutput.jobTitle || existingLead.jobTitle),
+        company: structuredOutput.company === "N/A" ? existingLead.company : (structuredOutput.company || existingLead.company),
+        website: structuredOutput.website === "N/A" ? existingLead.website : (structuredOutput.website || existingLead.website),
+        email: structuredOutput.email === "N/A" ? existingLead.email : (structuredOutput.email || existingLead.email),
+        linkedin: structuredOutput.linkedin === "N/A" ? existingLead.linkedin : (structuredOutput.linkedin || existingLead.linkedin),
+        mainInterest: structuredOutput.mainInterest === "N/A" ? existingLead.mainInterest : (structuredOutput.mainInterest || existingLead.mainInterest),
+        nextSteps: structuredOutput.nextSteps === "N/A" ? existingLead.nextSteps : (structuredOutput.nextSteps || existingLead.nextSteps),
+        notes: structuredOutput.notes === "N/A" ? existingLead.notes : (structuredOutput.notes || existingLead.notes),
+        companyIndustry: structuredOutput.companyIndustry === "N/A" ? existingLead.companyIndustry : (structuredOutput.companyIndustry || existingLead.companyIndustry),
+        companySize: structuredOutput.companySize === "N/A" ? existingLead.companySize : (structuredOutput.companySize || existingLead.companySize),
+        companyBusiness: structuredOutput.companyBusiness === "N/A" ? existingLead.companyBusiness : (structuredOutput.companyBusiness || existingLead.companyBusiness),
+        qualificationReason: structuredOutput.qualificationReason === "N/A" ? existingLead.qualificationReason : (structuredOutput.qualificationReason || existingLead.qualificationReason),
+        contactTiming: structuredOutput.contactTiming === "N/A" ? existingLead.contactTiming : (structuredOutput.contactTiming || existingLead.contactTiming),
+        contactDate: structuredOutput.contactDate === "N/A" ? existingLead.contactDate : (structuredOutput.contactDate || existingLead.contactDate),
+        followUpTemplate: structuredOutput.followUpTemplate === "N/A" ? existingLead.followUpTemplate : (structuredOutput.followUpTemplate || existingLead.followUpTemplate),
         
-        // Update source tracking flags (OR them together)
+        // Source tracking flags don't need N/A handling as they're booleans
         hasBusinessCard: structuredOutput.hasBusinessCard || existingLead.hasBusinessCard,
         hasTextNote: structuredOutput.hasTextNote || existingLead.hasTextNote,
         hasVoiceMemo: structuredOutput.hasVoiceMemo || existingLead.hasVoiceMemo,
         
-        // Preserve raw data from all sources
+        // Raw data doesn't need N/A handling
         rawBusinessCard: structuredOutput.rawBusinessCard || existingLead.rawBusinessCard,
         rawTextNote: structuredOutput.rawTextNote || existingLead.rawTextNote,
         rawVoiceMemo: structuredOutput.rawVoiceMemo || existingLead.rawVoiceMemo,
         
-        // Special handling for enum fields - only update if new value is more certain
+        // Enum fields don't need N/A handling
         isTarget: structuredOutput.isTarget === 'UNKNOWN' ? existingLead.isTarget : structuredOutput.isTarget,
         icpFit: structuredOutput.icpFit === 'UNKNOWN' ? existingLead.icpFit : structuredOutput.icpFit,
         
-        // Special handling for boolean fields
+        // Boolean fields don't need N/A handling
         referral: structuredOutput.referral || existingLead.referral,
       }
       
