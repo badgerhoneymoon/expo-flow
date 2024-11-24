@@ -22,6 +22,8 @@ export default function UploadForm() {
   const [isProcessing, setIsProcessing] = useState(false)
   
   const handleFileSelect = (type: 'image' | 'text' | 'audio') => {
+    setFiles([])
+    
     const input = document.createElement('input')
     input.type = 'file'
     input.multiple = true
