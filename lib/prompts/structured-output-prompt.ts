@@ -75,27 +75,22 @@ IMPORTANT: If any information is unclear, ambiguous, or not explicitly mentioned
      * Use current year unless next year explicitly stated
 
 5. Referral Handling:
-   - Set referral to true if someone else is mentioned to contact instead
-   - For referrals, capture these specific fields in referralData:
-     * First Name & Last Name of the referred person
+   - Set referral to true if someone else is mentioned to contact
+   - When referral is true, capture in referralData:
+     * First Name & Last Name of the person to contact
      * Position (job title) if mentioned
-     * Contact Timing (when to reach out to the referred person)
-     * Contact Date (specific date if mentioned for reaching the referred person)
+     * Contact Timing (when to reach out)
+     * Contact Date (specific date if mentioned)
    
-   Example referral phrases to detect:
-   - "talk to Sarah Smith instead, she's their CTO"
-   - "reach out to John after he returns from vacation next month"
-   - "contact Mike Jones, he's handling this project"
-   
-   Example timing for referrals:
+   Example timing for referred people:
    - "Sarah will be back from vacation on January 15th" -> referralData.contactDate: "2024-01-15"
    - "Better reach out to Mike next week" -> referralData.contactTiming: "next week"
-   - "Contact John, he's the right person" -> no timing specified
    
    Important:
-   - Contact timing and date should only be set for the referred person
-   - If someone is referring to another person, their own contact timing is irrelevant
-   - Only capture timing information that relates to when to contact the referred person
+   - Set referral to true whenever another person to contact is mentioned
+   - The referral flag here indicates "contains referral data"
+   - Only capture information about who to contact next
+   - Only include timing that relates to when to contact the referred person
 
 Remember:
 - Today's date is ${currentDate}

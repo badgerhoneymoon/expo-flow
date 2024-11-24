@@ -116,11 +116,20 @@ export async function createLead(structuredOutput: StructuredOutput) {
         // Default values
         isTarget: TargetStatus.UNKNOWN,
         icpFit: ICPFitStatus.UNKNOWN,
-        referral: false, // This is a referred lead
+        // This person was referred by someone, so they get referral: true
+        referral: true,
         notes: `Referred by ${sourceLeadWithEnrichedData.firstName || ''} ${sourceLeadWithEnrichedData.lastName || ''}`
       }
 
+      // Create the referred lead
       await createLead(referralLead)
+
+      // Update the source lead to referral: false since they did the referring
+      const updatedSourceData = {
+        ...updatedOrNewLead,
+        referral: false // This person made a referral but wasn't referred themselves
+      }
+      updatedOrNewLead = await queries.updateLead(updatedOrNewLead.id, updatedSourceData)
     }
 
     revalidatePath("/leads")
