@@ -37,13 +37,12 @@ export async function createLead(structuredOutput: StructuredOutput) {
       structuredOutput.company || ""
     )
 
-    let mainLeadResult;
+    let updatedOrNewLead;
 
     if (existingLead) {
       // Merge with existing lead data, preserving existing values unless new data is provided
       const updatedData = {
-        ...existingLead, // Start with all existing data
-        // Only update fields if new data has non-null values
+        ...existingLead,
         firstName: structuredOutput.firstName || existingLead.firstName,
         lastName: structuredOutput.lastName || existingLead.lastName,
         jobTitle: structuredOutput.jobTitle || existingLead.jobTitle,
@@ -80,44 +79,52 @@ export async function createLead(structuredOutput: StructuredOutput) {
         referral: structuredOutput.referral || existingLead.referral,
       }
       
-      const updatedLead = await queries.updateLead(existingLead.id, updatedData)
-      mainLeadResult = { success: true, data: updatedLead }
+      updatedOrNewLead = await queries.updateLead(existingLead.id, updatedData)
     } else {
-      // Create new lead - let Supabase handle the ID
-      const newLead = await queries.createLead(structuredOutputToNewLead(structuredOutput))
-      mainLeadResult = { success: true, data: newLead }
+      // Create new lead
+      updatedOrNewLead = await queries.createLead(structuredOutputToNewLead(structuredOutput))
     }
 
-    // Handle referral if present
+    // Handle referral if present - now using the updated/new lead data
     if (structuredOutput.referral && structuredOutput.referralData) {
-      // Create a new lead for the referral, inheriting company info from the main lead
+      // Get the most up-to-date company information from the database
+      const sourceLeadWithEnrichedData = await queries.getLead(updatedOrNewLead.id)
+      if (!sourceLeadWithEnrichedData) {
+        throw new Error("Failed to fetch updated lead data")
+      }
+
+      // Create a new lead for the referral using the enriched company data
       const referralLead: StructuredOutput = {
         firstName: structuredOutput.referralData.firstName,
         lastName: structuredOutput.referralData.lastName,
         jobTitle: structuredOutput.referralData.position,
-        company: structuredOutput.company, // Inherit from main lead
-        website: structuredOutput.website, // Inherit from main lead
-        companyIndustry: structuredOutput.companyIndustry, // Inherit from main lead
-        companySize: structuredOutput.companySize, // Inherit from main lead
-        companyBusiness: structuredOutput.companyBusiness, // Inherit from main lead
+        // Use the enriched company data from the source lead, handle null values
+        company: sourceLeadWithEnrichedData.company || undefined,
+        website: sourceLeadWithEnrichedData.website || undefined,
+        companyIndustry: sourceLeadWithEnrichedData.companyIndustry || undefined,
+        companySize: sourceLeadWithEnrichedData.companySize || undefined,
+        companyBusiness: sourceLeadWithEnrichedData.companyBusiness || undefined,
+        // Inherit main interest from source lead
+        mainInterest: sourceLeadWithEnrichedData.mainInterest || undefined,
+        // Referral specific data
         contactTiming: structuredOutput.referralData.contactTiming,
         contactDate: structuredOutput.referralData.contactDate,
-        // Set source flags based on where the referral came from
+        // Source tracking - inherit from the current source
         hasBusinessCard: structuredOutput.hasBusinessCard,
         hasTextNote: structuredOutput.hasTextNote,
         hasVoiceMemo: structuredOutput.hasVoiceMemo,
-        // Default values for required fields
+        // Default values
         isTarget: TargetStatus.UNKNOWN,
         icpFit: ICPFitStatus.UNKNOWN,
-        referral: false, // This is a referred lead, not a referrer
-        notes: `Referred by ${structuredOutput.firstName} ${structuredOutput.lastName}`
+        referral: false, // This is a referred lead
+        notes: `Referred by ${sourceLeadWithEnrichedData.firstName || ''} ${sourceLeadWithEnrichedData.lastName || ''}`
       }
 
       await createLead(referralLead)
     }
 
     revalidatePath("/leads")
-    return mainLeadResult
+    return { success: true, data: updatedOrNewLead }
 
   } catch (error) {
     return { success: false, error: "Failed to create lead" }
