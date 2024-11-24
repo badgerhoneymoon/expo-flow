@@ -44,15 +44,11 @@ export const leads = pgTable("leads", {
   isTarget: boolean("is_target").default(false),
   icpFit: boolean("icp_fit"),
   qualificationReason: text("qualification_reason"),
-  
-  // Processing Status
-  processingStatus: text("processing_status").default('pending'),
-  enrichmentStatus: text("enrichment_status").default('pending'),
 
   // Follow-up
   contactTiming: text("contact_timing"), // Raw timing text (e.g., "next week", "after December")
-  contactDate: text("contact_date"), // Structured YYYY-MM-DD date  
-  followUpTemplate: text("follow_up_template"),
+  contactDate: text("contact_date"), // Structured YYYY-MM-DD date - when to follow up
+  followUpTemplate: text("follow_up_template"), // Template to use for follow up
   
   // Raw Data Storage
   rawBusinessCard: text("raw_business_card"),
@@ -62,13 +58,3 @@ export const leads = pgTable("leads", {
 
 export type Lead = typeof leads.$inferSelect
 export type NewLead = typeof leads.$inferInsert
-
-// Processing status types
-export const ProcessingStatus = {
-  PENDING: 'pending',
-  PROCESSING: 'processing',
-  COMPLETE: 'complete',
-  FAILED: 'failed',
-} as const
-
-export type ProcessingStatus = typeof ProcessingStatus[keyof typeof ProcessingStatus] 

@@ -1,52 +1,25 @@
 "use server"
 
-import { TextNotesSchema, TextNotesData } from '@/types/text-notes-types';
+import { StructuredOutputSchema, StructuredOutputResponse, StructuredOutput } from '@/types/structured-output-types';
 import { StructuredOutputService } from "@/lib/services/structured-output-service";
+import { getStructuredOutputPrompt } from '@/lib/prompts/structured-output-prompt';
 
-const TEXT_NOTES_PROMPT = `Extract and structure information from text notes with these rules:
-
-1. Name:
-   - Split into firstName and lastName if both are present
-   - Don't include titles or honorifics
-   - Leave empty if unclear or not mentioned
-
-2. Job Title:
-   - Extract exact job title if mentioned
-   - Leave empty if not clearly stated
-
-3. Company:
-   - Extract company name if mentioned
-   - Don't include legal entities (LLC, Inc) unless part of official name
-   - Leave empty if not mentioned
-
-4. Qualification:
-   - Use "yes" or "no" if qualification can be determined
-   - Base this on:
-     * Budget mentions
-     * Company size/scale
-     * Decision making authority
-     * Project scope
-   - Leave empty if insufficient information
-
-5. Reason:
-   - Explain qualification decision if made
-   - Be specific about why qualified or not qualified
-   - Leave empty if qualification is unclear
-
-Remember:
-- All fields are optional
-- Only include information that is explicitly stated
-- Don't make assumptions
-- Use exact text from notes where possible
-- Better to leave a field empty than to guess`;
-
-export async function processTextNotes(text: string) {
+export async function processTextNotes(text: string): Promise<StructuredOutputResponse> {
   try {
-    return await StructuredOutputService.structureText<TextNotesData>(
+    const prompt = getStructuredOutputPrompt(new Date().toISOString().split('T')[0]);
+    const result = await StructuredOutputService.structureText(
       text,
-      TextNotesSchema,
-      TEXT_NOTES_PROMPT
-    );
+      StructuredOutputSchema,
+      prompt
+    ) as StructuredOutputResponse;
+
+    if (result.success && result.data) {
+      const data = result.data as StructuredOutput;
+      data.hasTextNote = true;
+      data.rawTextNote = text;
+    }
+
+    return result;
   } catch (error) {
     console.error('Error processing text notes:', error);
     return {
