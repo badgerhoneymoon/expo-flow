@@ -52,7 +52,20 @@ IMPORTANT: If any information is unclear, ambiguous, or not explicitly mentioned
      * Only include clearly stated, factual information
      * No interpretations or assumptions
 
-4. Follow-up Information:
+4. Qualification Assessment:
+   - Is Target:
+     * YES: Clearly matches target profile
+     * NO: Clearly doesn't match target profile
+     * UNKNOWN: Not enough information to determine
+   - ICP Fit:
+     * YES: Strong match with ideal customer profile
+     * NO: Definitely not a match
+     * UNKNOWN: Insufficient information
+   - Qualification Reason:
+     * Document specific reasons for the assessment
+     * Include key factors that led to the decision
+
+5. Follow-up Information:
    - Contact Timing:
      * Capture exact timing phrase as mentioned
      * Examples: "reach out next week", "after maternity leave"

@@ -1,4 +1,9 @@
-import { pgTable, text, timestamp, boolean, uuid } from "drizzle-orm/pg-core"
+import { pgTable, text, timestamp, boolean, uuid, pgEnum } from "drizzle-orm/pg-core"
+import { TargetStatus, ICPFitStatus } from "@/types/structured-output-types"
+
+// Create Postgres enums with explicit values
+export const targetStatusEnum = pgEnum('target_status', ['YES', 'NO', 'UNKNOWN'] as const)
+export const icpFitStatusEnum = pgEnum('icp_fit_status', ['YES', 'NO', 'UNKNOWN'] as const)
 
 export const leads = pgTable("leads", {
   // Core Identification (handled by Supabase)
@@ -41,8 +46,8 @@ export const leads = pgTable("leads", {
   referral: boolean("referral").default(false),
   
   // Qualification Info
-  isTarget: boolean("is_target").default(false),
-  icpFit: boolean("icp_fit"),
+  isTarget: targetStatusEnum("is_target").default('UNKNOWN'),
+  icpFit: icpFitStatusEnum("icp_fit").default('UNKNOWN'),
   qualificationReason: text("qualification_reason"),
 
   // Follow-up

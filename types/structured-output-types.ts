@@ -1,5 +1,18 @@
 import { z } from "zod"
 
+// Define our enums
+export enum TargetStatus {
+  YES = "YES",
+  NO = "NO",
+  UNKNOWN = "UNKNOWN"
+}
+
+export enum ICPFitStatus {
+  YES = "YES",
+  NO = "NO",
+  UNKNOWN = "UNKNOWN"
+}
+
 // This is our Zod schema for OpenAI's structured output
 export const StructuredOutputSchema = z.object({
   // Event Context
@@ -32,8 +45,8 @@ export const StructuredOutputSchema = z.object({
   referral: z.boolean().optional(),
 
   // Qualification Info
-  isTarget: z.boolean().optional(),
-  icpFit: z.boolean().optional(),
+  isTarget: z.nativeEnum(TargetStatus).optional().default(TargetStatus.UNKNOWN),
+  icpFit: z.nativeEnum(ICPFitStatus).optional().default(ICPFitStatus.UNKNOWN),
   qualificationReason: z.string().optional(),
 
   // Follow-up
