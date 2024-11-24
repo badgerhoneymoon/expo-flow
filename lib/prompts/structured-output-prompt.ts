@@ -22,10 +22,21 @@ IMPORTANT: If any information is unclear, ambiguous, or not explicitly mentioned
    - Use this validated name spelling for all fields
 
 1. Basic Information:
-   - First Name & Last Name: 
+   - First Name & Last Name (REQUIRED): 
+     * Must extract both first and last name
      * Split into separate fields
      * Don't include titles or honorifics
-     * Must be clearly stated
+     * If only full name is given, split intelligently
+     * For single word names:
+       - If clearly a first name, use as firstName, set lastName to "N/A"
+       - If unclear, use as lastName, set firstName to "N/A"
+     * If no name found, use "N/A" for both fields
+     * Examples:
+       - "John Smith" -> firstName: "John", lastName: "Smith"
+       - "Dr. Jane Doe" -> firstName: "Jane", lastName: "Doe"
+       - "Smith, John" -> firstName: "John", lastName: "Smith"
+       - "Just John" -> firstName: "John", lastName: "N/A"
+       - No name found -> firstName: "N/A", lastName: "N/A"
    - Job Title:
      * Look for complete, sensible job titles
      * Combine multiple lines if they form a complete title
@@ -92,11 +103,19 @@ IMPORTANT: If any information is unclear, ambiguous, or not explicitly mentioned
 
 5. Referral Handling:
    - Set referral to true if someone else is mentioned to contact
-   - When referral is true, capture in referralData:
-     * First Name & Last Name of the person to contact
-     * Position (job title) if mentioned
+   - When referral is true, MUST capture in referralData:
+     * First Name & Last Name (REQUIRED):
+       - Follow same name rules as above
+       - If only partial name mentioned, use "N/A" for missing part
+       - Examples:
+         - "talk to Sarah" -> firstName: "Sarah", lastName: "N/A"
+         - "contact Smith" -> firstName: "N/A", lastName: "Smith"
+         - "reach someone else" -> firstName: "N/A", lastName: "N/A"
+     * Position (if mentioned)
      * Contact Timing (when to reach out)
      * Contact Date (specific date if mentioned)
+     * Target Status based on position
+     * Qualification Reason
    
    Example timing for referred people:
    - "Sarah will be back from vacation on January 15th" -> referralData.contactDate: "2024-01-15"

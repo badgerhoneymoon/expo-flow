@@ -113,10 +113,11 @@ export async function createLead(structuredOutput: StructuredOutput) {
         hasBusinessCard: structuredOutput.hasBusinessCard,
         hasTextNote: structuredOutput.hasTextNote,
         hasVoiceMemo: structuredOutput.hasVoiceMemo,
-        // Default values
-        isTarget: TargetStatus.UNKNOWN,
-        icpFit: ICPFitStatus.UNKNOWN,
-        // This person was referred by someone, so they get referral: true
+        // Use target assessment from referral data
+        isTarget: structuredOutput.referralData.isTarget ?? TargetStatus.UNKNOWN,
+        icpFit: ICPFitStatus.UNKNOWN, // Keep ICP as UNKNOWN since we need more info
+        qualificationReason: structuredOutput.referralData.qualificationReason,
+        // This person was referred by someone
         referral: true,
         notes: `Referred by ${sourceLeadWithEnrichedData.firstName || ''} ${sourceLeadWithEnrichedData.lastName || ''}`
       }
