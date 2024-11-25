@@ -8,6 +8,7 @@ import {
   ICPFitStatus 
 } from "@/types/structured-output-types"
 import { structuredOutputToNewLead } from "@/lib/utils/structured-output-converter"
+import { searchCompanyUrl } from "@/lib/services/exa-service"
 
 export async function getLeads() {
   try {
@@ -170,5 +171,32 @@ export async function deleteLead(id: string) {
     return { success: true, data: deletedLead }
   } catch (error) {
     return { success: false, error: "Failed to delete lead" }
+  }
+}
+
+export async function findMissingWebsites() {
+  try {
+    // Get all leads without websites or with N/A websites
+    const leads = await queries.getLeadsWithoutWebsites()
+    
+    let updatedCount = 0
+    for (const lead of leads) {
+      if (!lead.company || lead.company === "N/A") continue
+      
+      const { primaryUrl } = await searchCompanyUrl(lead.company)
+      
+      if (primaryUrl) {
+        await queries.updateLead(lead.id, {
+          website: primaryUrl
+        })
+        updatedCount++
+      }
+    }
+    
+    revalidatePath("/leads")
+    return { success: true, data: { processedCount: leads.length, updatedCount } }
+  } catch (error) {
+    console.error('Error finding missing websites:', error)
+    return { success: false, error: "Failed to process missing websites" }
   }
 } 

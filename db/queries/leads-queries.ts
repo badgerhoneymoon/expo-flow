@@ -1,6 +1,6 @@
 "use server"
 
-import { eq, and } from "drizzle-orm"
+import { eq, and, or, sql } from "drizzle-orm"
 import { db } from "@/db/db"
 import { leads } from "@/db/schema"
 import type { Lead, NewLead } from "@/db/schema"
@@ -88,4 +88,17 @@ export async function deleteLead(id: string): Promise<Lead> {
     console.error("Error deleting lead:", error)
     throw new Error("Failed to delete lead")
   }
+}
+
+export async function getLeadsWithoutWebsites() {
+  return await db
+    .select()
+    .from(leads)
+    .where(
+      or(
+        eq(leads.website, ""),
+        eq(leads.website, "N/A"),
+        sql`${leads.website} IS NULL`
+      )
+    )
 } 

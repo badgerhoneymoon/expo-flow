@@ -20,6 +20,10 @@ import { TargetStatus, ICPFitStatus } from "@/types/structured-output-types"
 import { Badge } from "@/components/ui/badge"
 import { motion } from "framer-motion"
 import { FileText, Mail, Linkedin, Globe, Calendar, Phone } from "lucide-react"
+import { findMissingWebsites } from "@/actions/leads-actions"
+import { Button } from "@/components/ui/button"
+import { toast } from "sonner"
+import { useState } from "react"
 
 // Helper component for long text content
 function LongTextCell({ content }: { content: string | null }) {
@@ -61,6 +65,47 @@ function LinkCell({ url, icon: Icon, isEmail = false }: { url: string | null, ic
   )
 }
 
+// Add this component above the LeadsTable component
+function FindWebsitesButton() {
+  const [isProcessing, setIsProcessing] = useState(false)
+
+  const handleClick = async () => {
+    setIsProcessing(true)
+    try {
+      const result = await findMissingWebsites()
+      
+      if (result.success && result.data) {
+        toast.success("Websites Updated", {
+          description: `Processed ${result.data.processedCount} leads, updated ${result.data.updatedCount} websites`,
+        })
+      } else {
+        toast.error("Error", {
+          description: result.error || "Failed to process websites",
+        })
+      }
+    } catch (error) {
+      toast.error("Error", {
+        description: "Failed to process websites",
+      })
+    } finally {
+      setIsProcessing(false)
+    }
+  }
+
+  return (
+    <Button
+      variant="outline"
+      size="sm"
+      onClick={handleClick}
+      disabled={isProcessing}
+      className="gap-2"
+    >
+      <Globe className="h-4 w-4" />
+      {isProcessing ? "Processing..." : "Find Missing Websites"}
+    </Button>
+  )
+}
+
 interface LeadsTableProps {
   leads: Lead[]
 }
@@ -69,7 +114,10 @@ export default function LeadsTable({ leads }: LeadsTableProps) {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>Leads</CardTitle>
+        <div className="flex items-center gap-4">
+          <CardTitle>Leads</CardTitle>
+          <FindWebsitesButton />
+        </div>
         <div className="flex items-center gap-4">
           <div className="flex flex-col items-center gap-1">
             <div className="text-xs text-muted-foreground">Total</div>

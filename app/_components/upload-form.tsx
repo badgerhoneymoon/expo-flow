@@ -172,7 +172,7 @@ export default function UploadForm() {
               <span className="text-lg font-medium">Upload Business Card Photos</span>
             </Button>
             <p className="text-sm text-muted-foreground text-center px-2">
-              JPG, PNG, GIF, and other image formats
+              JPG, PNG, WEBP, and other image formats
             </p>
           </div>
 
