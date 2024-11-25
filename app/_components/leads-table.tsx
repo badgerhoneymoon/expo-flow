@@ -19,7 +19,7 @@ import {
 import { targetStatusEnum, icpFitStatusEnum } from "@/db/schema/leads-schema"
 import { Badge } from "@/components/ui/badge"
 import { motion } from "framer-motion"
-import { Mail, Linkedin, Globe, Calendar, Calculator } from "lucide-react"
+import { Mail, Linkedin, Globe, Calendar, Calculator, MessageSquare } from "lucide-react"
 import { findMissingWebsites } from "@/actions/leads-actions"
 import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
@@ -31,6 +31,7 @@ import { qualifyLeads } from "@/actions/qualification-actions"
 import { useRouter } from "next/navigation"
 import { mockEnrichLinkedInProfiles } from "@/lib/services/mock-linkedin-service"
 import { updateLeadsLinkedIn } from "@/actions/leads-actions"
+import { generateFollowUps } from "@/actions/follow-up-actions"
 
 // Modified LinkCell component to handle emails specially
 function LinkCell({ url, icon: Icon, isEmail = false }: { url: string | null, icon: any, isEmail?: boolean }) {
@@ -296,7 +297,7 @@ function EnrichLinkedInButton({ leads }: { leads: Lead[] }) {
       className={cn(
         "relative gap-2",
         isProcessing && "pr-8",
-        "hover:border-emerald-500/50 hover:bg-emerald-500/10 hover:text-emerald-500",
+        "hover:border-rose-500/50 hover:bg-rose-500/10 hover:text-rose-500",
         "active:scale-95 transition-transform duration-75"
       )}
     >
@@ -308,6 +309,88 @@ function EnrichLinkedInButton({ leads }: { leads: Lead[] }) {
       />
       <span className={isProcessing ? "text-muted-foreground" : ""}>
         {isProcessing ? "Processing..." : `Find LinkedIn${leadsToEnrich > 0 ? ` (${leadsToEnrich})` : ''}`}
+      </span>
+      {isProcessing && (
+        <div className="absolute right-2 top-1/2 -translate-y-1/2">
+          <div className="h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" />
+        </div>
+      )}
+    </Button>
+  )
+}
+
+function CreateFollowUpsButton({ leads }: { leads: Lead[] }) {
+  const [isProcessing, setIsProcessing] = useState(false)
+  const router = useRouter()
+  
+  // Count qualified leads that need follow-ups
+  const leadsToProcess = leads.filter(lead => 
+    // Check if lead is qualified
+    lead.isTarget === targetStatusEnum.enumValues[0] && // "YES"
+    lead.icpFit === icpFitStatusEnum.enumValues[0] && // "YES"
+    // Check if lead needs follow-up (we can adjust these conditions later)
+    (!lead.followUpTemplate || lead.followUpTemplate === "N/A" || lead.followUpTemplate === "")
+  ).length
+
+  const handleClick = async () => {
+    if (leadsToProcess === 0) {
+      toast.info("No leads to process", {
+        description: "No qualified leads need follow-ups"
+      })
+      return
+    }
+
+    setIsProcessing(true)
+    try {
+      const result = await generateFollowUps(leads)
+      
+      if (result.success && result.data) {
+        toast.success("Follow-ups Generated", {
+          description: `Created ${result.data.updatedCount} follow-up messages`
+        })
+
+        if (result.data.failedCount > 0) {
+          toast.warning("Some generations failed", {
+            description: `Failed to generate ${result.data.failedCount} messages`
+          })
+        }
+
+        router.refresh()
+      } else {
+        toast.error("Error", {
+          description: result.error || "Failed to generate follow-up messages"
+        })
+      }
+    } catch (error) {
+      toast.error("Error", {
+        description: "Failed to generate follow-ups"
+      })
+    } finally {
+      setIsProcessing(false)
+    }
+  }
+
+  return (
+    <Button
+      variant="outline"
+      size="sm"
+      onClick={handleClick}
+      disabled={isProcessing}
+      className={cn(
+        "relative gap-2",
+        isProcessing && "pr-8",
+        "hover:border-emerald-500/50 hover:bg-emerald-500/10 hover:text-emerald-500",
+        "active:scale-95 transition-transform duration-75"
+      )}
+    >
+      <MessageSquare 
+        className={cn(
+          "h-4 w-4",
+          isProcessing && "text-muted-foreground animate-pulse"
+        )} 
+      />
+      <span className={isProcessing ? "text-muted-foreground" : ""}>
+        {isProcessing ? "Processing..." : `Create Follow-ups${leadsToProcess > 0 ? ` (${leadsToProcess})` : ''}`}
       </span>
       {isProcessing && (
         <div className="absolute right-2 top-1/2 -translate-y-1/2">
@@ -371,6 +454,7 @@ export default function LeadsTable({ leads }: LeadsTableProps) {
             <FindWebsitesButton leads={leads} />
             <ScoreButton leads={leads} />
             <EnrichLinkedInButton leads={leads} />
+            <CreateFollowUpsButton leads={leads} />
           </div>
         </div>
         <div className="flex items-center gap-6">
@@ -644,6 +728,14 @@ export default function LeadsTable({ leads }: LeadsTableProps) {
                       <div className="flex items-center gap-2 text-sm">
                         <Calendar className="h-4 w-4 text-muted-foreground" />
                         {lead.contactDate}
+                      </div>
+                    )}
+                    {lead.followUpTemplate && lead.followUpTemplate !== "N/A" && (
+                      <div className="flex flex-col gap-1">
+                        <div className="text-xs text-muted-foreground">LinkedIn Message</div>
+                        <div className="text-sm bg-muted/50 p-2 rounded-md">
+                          {lead.followUpTemplate}
+                        </div>
                       </div>
                     )}
                     {lead.nextSteps && lead.nextSteps !== "N/A" && (
