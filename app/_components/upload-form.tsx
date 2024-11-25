@@ -223,7 +223,7 @@ export default function UploadForm() {
 
         <div className="flex justify-center">
           <RainbowButton 
-            className="w-48" 
+            className="w-48 transition-transform hover:scale-105" 
             onClick={processFiles}
             disabled={isProcessing || files.length === 0}
           >
