@@ -6,6 +6,10 @@ import { StructuredOutput } from "@/types/structured-output-types"
 import { structuredOutputToNewLead } from "@/lib/utils/structured-output-converter"
 import { searchCompanyUrl, enrichCompanyData } from "@/lib/services/exa-service"
 import { targetStatusEnum, icpFitStatusEnum } from "@/db/schema/leads-schema"
+import { db } from "@/db/db"
+import { leads } from "@/db/schema"
+import { eq, and, or, sql } from "drizzle-orm"
+import type { Lead } from "@/db/schema/leads-schema"
 
 export async function getLeads() {
   try {
@@ -169,72 +173,112 @@ export async function deleteLead(id: string) {
 
 export async function findMissingWebsites() {
   try {
-    console.log('[Website Finding] Starting to find missing websites');
-    const leads = await queries.getLeadsWithoutWebsites()
-    console.log(`[Website Finding] Found ${leads.length} leads without websites`);
+    console.log('[Website Processing] Starting to process leads');
     
-    let updatedCount = 0
-    let enrichedCount = 0
+    // Get leads that need either website or enrichment
+    const leadsToProcess = await db
+      .select()
+      .from(leads)
+      .where(
+        or(
+          // Needs website
+          or(
+            eq(leads.website, ""),
+            eq(leads.website, "N/A"),
+            sql`${leads.website} IS NULL`
+          ),
+          // OR needs enrichment
+          and(
+            or(
+              eq(leads.companyIndustry, ""),
+              eq(leads.companyIndustry, "N/A"),
+              sql`${leads.companyIndustry} IS NULL`
+            ),
+            or(
+              eq(leads.companyBusiness, ""),
+              eq(leads.companyBusiness, "N/A"),
+              sql`${leads.companyBusiness} IS NULL`
+            )
+          )
+        )
+      )
+
+    console.log(`[Website Processing] Found ${leadsToProcess.length} leads to process`);
     
-    for (const lead of leads) {
-      console.log(`[Website Finding] Processing lead: ${lead.id} (${lead.company})`);
+    let websiteUpdates = 0;
+    let enrichmentUpdates = 0;
+    
+    for (const lead of leadsToProcess) {
+      console.log(`[Website Processing] Processing lead: ${lead.id} (${lead.company})`);
       
       if (!lead.company || lead.company === "N/A") {
-        console.log(`[Website Finding] Skipping lead ${lead.id} - no valid company name`);
+        console.log(`[Website Processing] Skipping lead ${lead.id} - no valid company name`);
         continue;
       }
+
+      let websiteToUse = lead.website;
       
-      const { primaryUrl } = await searchCompanyUrl(lead.company)
-      console.log(`[Website Finding] Found URL for ${lead.company}:`, primaryUrl);
+      // Only search for website if it's missing
+      if (!websiteToUse || websiteToUse === "N/A") {
+        const { primaryUrl } = await searchCompanyUrl(lead.company);
+        if (primaryUrl) {
+          websiteToUse = primaryUrl;
+          websiteUpdates++;
+          
+          // Update website immediately if found
+          await db
+            .update(leads)
+            .set({ website: primaryUrl })
+            .where(eq(leads.id, lead.id));
+            
+          console.log(`[Website Processing] Updated website for ${lead.id}: ${primaryUrl}`);
+        }
+      }
       
-      if (primaryUrl) {
-        // First update the website
-        console.log(`[Website Finding] Updating website for lead ${lead.id}`);
-        const websiteUpdate = await queries.updateLead(lead.id, {
-          website: primaryUrl
-        })
-        console.log(`[Website Finding] Website update result:`, websiteUpdate);
-        updatedCount++
+      // Try enrichment if we have a website and missing either industry or business info
+      if (websiteToUse && websiteToUse !== "N/A" && 
+          (!lead.companyIndustry || lead.companyIndustry === "N/A" ||
+           !lead.companyBusiness || lead.companyBusiness === "N/A")) {
         
-        // Then try to enrich the data
-        console.log(`[Website Finding] Starting enrichment for lead ${lead.id}`);
-        const enrichmentData = await enrichCompanyData(primaryUrl)
-        console.log(`[Website Finding] Enrichment data received:`, enrichmentData);
+        console.log(`[Website Processing] Attempting enrichment for ${lead.id}`);
+        const enrichmentData = await enrichCompanyData(websiteToUse);
         
         if (enrichmentData) {
-          const updateData = {
-            companyIndustry: enrichmentData.industry || undefined,
-            companyBusiness: enrichmentData.valueProp || undefined
-          };
-          console.log(`[Website Finding] Updating lead ${lead.id} with enrichment data:`, updateData);
+          const updateData: Partial<Lead> = {};
           
-          const enrichmentUpdate = await queries.updateLead(lead.id, updateData)
-          console.log(`[Website Finding] Enrichment update result:`, enrichmentUpdate);
-          enrichedCount++
-        } else {
-          console.log(`[Website Finding] No enrichment data received for lead ${lead.id}`);
+          if ((!lead.companyIndustry || lead.companyIndustry === "N/A") && enrichmentData.industry) {
+            updateData.companyIndustry = enrichmentData.industry;
+          }
+          
+          if ((!lead.companyBusiness || lead.companyBusiness === "N/A") && enrichmentData.valueProp) {
+            updateData.companyBusiness = enrichmentData.valueProp;
+          }
+          
+          if (Object.keys(updateData).length > 0) {
+            await db
+              .update(leads)
+              .set(updateData)
+              .where(eq(leads.id, lead.id));
+              
+            enrichmentUpdates++;
+            console.log(`[Website Processing] Enriched data for ${lead.id}`, updateData);
+          }
         }
-      } else {
-        console.log(`[Website Finding] No website found for lead ${lead.id}`);
       }
     }
     
-    console.log(`[Website Finding] Process completed. Processed: ${leads.length}, Updated: ${updatedCount}, Enriched: ${enrichedCount}`);
+    console.log(`[Website Processing] Complete. Websites: ${websiteUpdates}, Enrichments: ${enrichmentUpdates}`);
     
-    revalidatePath("/leads")
     return { 
       success: true, 
       data: { 
-        processedCount: leads.length, 
-        updatedCount,
-        enrichedCount 
+        processedCount: leadsToProcess.length,
+        websiteUpdates,
+        enrichmentUpdates
       } 
     }
   } catch (error) {
-    console.error('[Website Finding] Error:', error);
-    if (error instanceof Error) {
-      console.error('[Website Finding] Error details:', error.message, error.stack);
-    }
-    return { success: false, error: "Failed to process missing websites" }
+    console.error('[Website Processing] Error:', error);
+    return { success: false, error: "Failed to process websites and enrichments" }
   }
 } 

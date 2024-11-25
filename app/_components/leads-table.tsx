@@ -63,16 +63,23 @@ function LinkCell({ url, icon: Icon, isEmail = false }: { url: string | null, ic
 // Add this component above the LeadsTable component
 function FindWebsitesButton({ leads }: { leads: Lead[] }) {
   const [isProcessing, setIsProcessing] = useState(false)
+  const router = useRouter()
   
-  // Count leads without websites
-  const leadsWithoutWebsites = leads.filter(lead => 
-    !lead.website || lead.website === "N/A" || lead.website === ""
+  // Count leads that need either website or enrichment
+  const leadsToProcess = leads.filter(lead => 
+    // Needs website
+    (!lead.website || lead.website === "N/A" || lead.website === "") ||
+    // OR needs enrichment (missing industry or business info)
+    (
+      (!lead.companyIndustry || lead.companyIndustry === "N/A" || lead.companyIndustry === "") ||
+      (!lead.companyBusiness || lead.companyBusiness === "N/A" || lead.companyBusiness === "")
+    )
   ).length
 
   const handleClick = async () => {
-    if (leadsWithoutWebsites === 0) {
-      toast.info("No missing websites", {
-        description: "All leads already have websites"
+    if (leadsToProcess === 0) {
+      toast.info("No leads to process", {
+        description: "All leads have websites and enrichment data"
       })
       return
     }
@@ -82,17 +89,21 @@ function FindWebsitesButton({ leads }: { leads: Lead[] }) {
       const result = await findMissingWebsites()
       
       if (result.success && result.data) {
-        toast.success("Websites Updated", {
-          description: `Processed ${result.data.processedCount} leads, updated ${result.data.updatedCount} websites`,
+        toast.success("Processing Complete", {
+          description: `Processed ${result.data.processedCount} leads:
+           • ${result.data.websiteUpdates} websites found
+           • ${result.data.enrichmentUpdates} companies enriched`,
         })
+        
+        router.refresh()
       } else {
         toast.error("Error", {
-          description: result.error || "Failed to process websites",
+          description: result.error || "Failed to process leads",
         })
       }
     } catch (error) {
       toast.error("Error", {
-        description: "Failed to process websites",
+        description: "Failed to process leads",
       })
     } finally {
       setIsProcessing(false)
@@ -119,7 +130,7 @@ function FindWebsitesButton({ leads }: { leads: Lead[] }) {
         )} 
       />
       <span className={isProcessing ? "text-muted-foreground" : ""}>
-        {isProcessing ? "Processing..." : `Find Missing Websites${leadsWithoutWebsites > 0 ? ` (${leadsWithoutWebsites})` : ''}`}
+        {isProcessing ? "Processing..." : `Find & Enrich${leadsToProcess > 0 ? ` (${leadsToProcess})` : ''}`}
       </span>
       {isProcessing && (
         <div className="absolute right-2 top-1/2 -translate-y-1/2">
