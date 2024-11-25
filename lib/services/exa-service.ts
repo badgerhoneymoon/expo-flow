@@ -348,23 +348,24 @@ export async function enrichCompanyData(url: string): Promise<{ industry?: strin
 
     console.log('[Exa Enrichment] Raw API response:', JSON.stringify(result, null, 2));
 
-    // Type guard to ensure result is an array
-    if (!Array.isArray(result)) {
-      console.log('[Exa Enrichment] Result is not an array');
+    // Check if we have results and the first result has a summary
+    if (!result.results?.[0]?.summary) {
+      console.log('[Exa Enrichment] No valid summary found in result');
       return null;
     }
 
-    // Check if we have any results and if the first result has a summary
-    const firstResult = result[0];
-    if (!firstResult || typeof firstResult.summary !== 'string') {
-      console.log('[Exa Enrichment] No valid summary found in first result');
-      return null;
-    }
-
-    const summary = firstResult.summary;
+    const summary = result.results[0].summary;
     console.log('[Exa Enrichment] Summary found:', summary);
     
-    const [valueProp, industry] = summary.split('\n').map((line: string) => line.trim());
+    // Split by newline and clean up each line
+    const lines = summary.split('\n').map(line => line.trim()).filter(Boolean);
+    
+    if (lines.length < 2) {
+      console.log('[Exa Enrichment] Invalid summary format - expected 2 lines');
+      return null;
+    }
+
+    const [valueProp, industry] = lines;
     console.log('[Exa Enrichment] Parsed values:', { valueProp, industry });
     
     return {

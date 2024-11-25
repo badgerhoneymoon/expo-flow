@@ -360,6 +360,26 @@ export default function LeadsTable({ leads }: LeadsTableProps) {
                         <LinkCell url={lead.website} icon={Globe} />
                       </div>
                     )}
+                    {(lead.companyIndustry || lead.companyBusiness) && (
+                      <div className="flex flex-col gap-1 mt-2">
+                        {lead.companyIndustry && lead.companyIndustry !== "N/A" && (
+                          <div className="flex flex-col gap-0.5">
+                            <span className="text-xs text-muted-foreground">Industry</span>
+                            <span className="text-sm bg-muted/50 px-2 py-1 rounded">
+                              {lead.companyIndustry}
+                            </span>
+                          </div>
+                        )}
+                        {lead.companyBusiness && lead.companyBusiness !== "N/A" && (
+                          <div className="flex flex-col gap-0.5">
+                            <span className="text-xs text-muted-foreground">Business</span>
+                            <span className="text-sm bg-muted/50 px-2 py-1 rounded">
+                              {lead.companyBusiness}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </TableCell>
 
