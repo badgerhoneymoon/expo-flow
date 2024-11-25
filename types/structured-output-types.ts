@@ -1,18 +1,5 @@
 import { z } from "zod"
 
-// Define our enums
-export enum TargetStatus {
-  YES = "YES",
-  NO = "NO",
-  UNKNOWN = "UNKNOWN"
-}
-
-export enum ICPFitStatus {
-  YES = "YES",
-  NO = "NO",
-  UNKNOWN = "UNKNOWN"
-}
-
 // New schema for referrals
 export const ReferralSchema = z.object({
   firstName: z.string(),
@@ -20,8 +7,6 @@ export const ReferralSchema = z.object({
   position: z.string().optional(),
   contactTiming: z.string().optional(),
   contactDate: z.string().optional(),
-  isTarget: z.nativeEnum(TargetStatus).optional().default(TargetStatus.UNKNOWN),
-  qualificationReason: z.string().optional(),
 })
 
 export type Referral = z.infer<typeof ReferralSchema>
@@ -39,7 +24,7 @@ export const StructuredOutputSchema = z.object({
   email: z.string().optional(),
   linkedin: z.string().optional(),
 
-  // Internal enrichment specific fields - now required but without defaults
+  // Internal enrichment specific fields
   mainInterest: z.string().optional(),
   nextSteps: z.string(),
   notes: z.string(),
@@ -52,11 +37,6 @@ export const StructuredOutputSchema = z.object({
   // Referral Info
   referral: z.boolean().optional(),
   referralData: ReferralSchema.optional(),
-
-  // Qualification Info
-  isTarget: z.nativeEnum(TargetStatus).optional(),
-  icpFit: z.nativeEnum(ICPFitStatus).optional(),
-  qualificationReason: z.string().optional(),
 
   // Follow-up
   contactTiming: z.string().optional(),

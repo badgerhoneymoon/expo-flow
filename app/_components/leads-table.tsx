@@ -16,10 +16,10 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import { TargetStatus, ICPFitStatus } from "@/types/structured-output-types"
+import { targetStatusEnum, icpFitStatusEnum } from "@/db/schema/leads-schema"
 import { Badge } from "@/components/ui/badge"
 import { motion } from "framer-motion"
-import { Mail, Linkedin, Globe, Calendar } from "lucide-react"
+import { Mail, Linkedin, Globe, Calendar, Calculator } from "lucide-react"
 import { findMissingWebsites } from "@/actions/leads-actions"
 import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
@@ -126,6 +126,70 @@ function FindWebsitesButton({ leads }: { leads: Lead[] }) {
   )
 }
 
+// Add this new component above the LeadsTable component
+function ScoreButton({ leads }: { leads: Lead[] }) {
+  const [isProcessing, setIsProcessing] = useState(false)
+  
+  // Count leads that need scoring (those with UNKNOWN status)
+  const leadsToScore = leads.filter(lead => 
+    lead.isTarget === targetStatusEnum.enumValues[2] || // "UNKNOWN"
+    lead.icpFit === icpFitStatusEnum.enumValues[2] // "UNKNOWN"
+  ).length
+
+  const handleClick = async () => {
+    if (leadsToScore === 0) {
+      toast.info("No leads to score", {
+        description: "All leads already have target and ICP status"
+      })
+      return
+    }
+
+    setIsProcessing(true)
+    try {
+      // TODO: Implement scoring action
+      toast.info("Coming soon", {
+        description: "Lead scoring functionality will be available soon"
+      })
+    } catch (error) {
+      toast.error("Error", {
+        description: "Failed to score leads",
+      })
+    } finally {
+      setIsProcessing(false)
+    }
+  }
+
+  return (
+    <Button
+      variant="outline"
+      size="sm"
+      onClick={handleClick}
+      disabled={isProcessing}
+      className={cn(
+        "relative gap-2",
+        isProcessing && "pr-8",
+        "hover:border-purple-500/50 hover:bg-purple-500/10 hover:text-purple-500",
+        "active:scale-95 transition-transform duration-75"
+      )}
+    >
+      <Calculator 
+        className={cn(
+          "h-4 w-4",
+          isProcessing && "text-muted-foreground animate-pulse"
+        )} 
+      />
+      <span className={isProcessing ? "text-muted-foreground" : ""}>
+        {isProcessing ? "Processing..." : `Score Leads${leadsToScore > 0 ? ` (${leadsToScore})` : ''}`}
+      </span>
+      {isProcessing && (
+        <div className="absolute right-2 top-1/2 -translate-y-1/2">
+          <div className="h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" />
+        </div>
+      )}
+    </Button>
+  )
+}
+
 interface LeadsTableProps {
   leads: Lead[]
 }
@@ -136,7 +200,10 @@ export default function LeadsTable({ leads }: LeadsTableProps) {
       <CardHeader className="flex flex-row items-center justify-between">
         <div className="flex items-center gap-4">
           <CardTitle>Leads</CardTitle>
-          <FindWebsitesButton leads={leads} />
+          <div className="flex items-center gap-2">
+            <FindWebsitesButton leads={leads} />
+            <ScoreButton leads={leads} />
+          </div>
         </div>
         <div className="flex items-center gap-4">
           <div className="flex flex-col items-center gap-1">
@@ -149,20 +216,20 @@ export default function LeadsTable({ leads }: LeadsTableProps) {
           <div className="flex flex-col items-center gap-1">
             <div className="text-xs text-muted-foreground">Targets</div>
             <Badge 
-              variant={leads.filter(l => l.isTarget === TargetStatus.YES).length > 0 ? "success" : "outline"}
+              variant={leads.filter(l => l.isTarget === targetStatusEnum.enumValues[0]).length > 0 ? "success" : "outline"} // "YES"
               className="min-w-[3rem] justify-center text-base font-semibold"
             >
-              {leads.filter(l => l.isTarget === TargetStatus.YES).length}
+              {leads.filter(l => l.isTarget === targetStatusEnum.enumValues[0]).length}
             </Badge>
           </div>
 
           <div className="flex flex-col items-center gap-1">
             <div className="text-xs text-muted-foreground">ICP Fit</div>
             <Badge 
-              variant={leads.filter(l => l.icpFit === ICPFitStatus.YES).length > 0 ? "success" : "outline"}
+              variant={leads.filter(l => l.icpFit === icpFitStatusEnum.enumValues[0]).length > 0 ? "success" : "outline"} // "YES"
               className="min-w-[3rem] justify-center text-base font-semibold"
             >
-              {leads.filter(l => l.icpFit === ICPFitStatus.YES).length}
+              {leads.filter(l => l.icpFit === icpFitStatusEnum.enumValues[0]).length}
             </Badge>
           </div>
         </div>
@@ -266,8 +333,8 @@ export default function LeadsTable({ leads }: LeadsTableProps) {
                       <div className="flex flex-col gap-1">
                         <div className="text-xs text-muted-foreground">Target</div>
                         <Badge 
-                          variant={lead.isTarget === TargetStatus.YES ? "success" : 
-                                  lead.isTarget === TargetStatus.NO ? "destructive" : "outline"}
+                          variant={lead.isTarget === targetStatusEnum.enumValues[0] ? "success" : // "YES"
+                                  lead.isTarget === targetStatusEnum.enumValues[1] ? "destructive" : "outline"} // "NO"
                           className="w-20 justify-center"
                         >
                           {lead.isTarget}
@@ -277,8 +344,8 @@ export default function LeadsTable({ leads }: LeadsTableProps) {
                       <div className="flex flex-col gap-1">
                         <div className="text-xs text-muted-foreground">ICP</div>
                         <Badge 
-                          variant={lead.icpFit === ICPFitStatus.YES ? "success" : 
-                                  lead.icpFit === ICPFitStatus.NO ? "destructive" : "outline"}
+                          variant={lead.icpFit === icpFitStatusEnum.enumValues[0] ? "success" : // "YES"
+                                  lead.icpFit === icpFitStatusEnum.enumValues[1] ? "destructive" : "outline"} // "NO"
                           className="w-20 justify-center"
                         >
                           {lead.icpFit}

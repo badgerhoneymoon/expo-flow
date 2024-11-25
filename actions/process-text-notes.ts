@@ -3,27 +3,16 @@
 import { 
   StructuredOutputSchema, 
   StructuredOutputResponse, 
-  StructuredOutput,
-  TargetStatus,
-  ICPFitStatus 
+  StructuredOutput
 } from '@/types/structured-output-types'
 import { StructuredOutputService } from "@/lib/services/structured-output-service"
 import { getStructuredOutputPrompt } from '@/lib/prompts/structured-output-prompt'
 import { createLead } from './leads-actions'
-import { getCompanyProfile } from './company-profile-actions'
 
 export async function processTextNotes(text: string): Promise<StructuredOutputResponse> {
   try {
-    // console.log('Text Notes Input:', text)  // Commented out
-    
-    // Get company profile data
-    const companyProfile = await getCompanyProfile()
-    
     const prompt = getStructuredOutputPrompt(
-      new Date().toISOString().split('T')[0],
-      companyProfile.targetJobTitles,
-      companyProfile.icpDescription,
-      companyProfile.targetMarkets
+      new Date().toISOString().split('T')[0]
     )
     
     const result = await StructuredOutputService.structureText<StructuredOutput>(
@@ -37,9 +26,9 @@ export async function processTextNotes(text: string): Promise<StructuredOutputRe
       const enrichedData: StructuredOutput = {
         // OpenAI parsed data
         ...result.data,
-        // Required enum fields with defaults
-        isTarget: result.data.isTarget ?? TargetStatus.UNKNOWN,
-        icpFit: result.data.icpFit ?? ICPFitStatus.UNKNOWN,
+        // Add defaults for required fields
+        nextSteps: result.data.nextSteps || "N/A",
+        notes: result.data.notes || "N/A",
         // Source tracking
         hasBusinessCard: false,
         hasTextNote: true,

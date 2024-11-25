@@ -65,15 +65,19 @@ export async function createLead(lead: NewLead): Promise<Lead> {
 
 export async function updateLead(id: string, lead: Partial<NewLead>): Promise<Lead> {
   try {
+    console.log(`[DB Update] Updating lead ${id} with data:`, lead);
+    
     const [updatedLead] = await db
       .update(leads)
       .set({ ...lead, updatedAt: new Date() })
       .where(eq(leads.id, id))
       .returning()
-    return updatedLead
+    
+    console.log(`[DB Update] Update result:`, updatedLead);
+    return updatedLead;
   } catch (error) {
-    console.error("Error updating lead:", error)
-    throw new Error("Failed to update lead")
+    console.error("[DB Update] Error updating lead:", error);
+    throw new Error("Failed to update lead");
   }
 }
 

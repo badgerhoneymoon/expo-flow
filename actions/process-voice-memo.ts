@@ -3,15 +3,12 @@
 import { 
   StructuredOutputSchema, 
   StructuredOutputResponse, 
-  StructuredOutput,
-  TargetStatus,
-  ICPFitStatus 
+  StructuredOutput
 } from '@/types/structured-output-types'
 import { WhisperService } from "@/lib/services/whisper-service"
 import { StructuredOutputService } from "@/lib/services/structured-output-service"
 import { getStructuredOutputPrompt } from '@/lib/prompts/structured-output-prompt'
 import { createLead } from './leads-actions'
-import { getCompanyProfile } from './company-profile-actions'
 
 export async function processVoiceMemo(audioData: FormData): Promise<StructuredOutputResponse> {
   try {
@@ -22,9 +19,6 @@ export async function processVoiceMemo(audioData: FormData): Promise<StructuredO
         error: "No audio file provided"
       }
     }
-
-    // Get company profile data
-    const companyProfile = await getCompanyProfile()
 
     // Transcribe audio to text
     const { success: transcriptionSuccess, text, error: transcriptionError } = 
@@ -37,12 +31,8 @@ export async function processVoiceMemo(audioData: FormData): Promise<StructuredO
       }
     }
 
-    // console.log('Whisper Transcription:', text)  // Commented out
     const prompt = getStructuredOutputPrompt(
-      new Date().toISOString().split('T')[0],
-      companyProfile.targetJobTitles,
-      companyProfile.icpDescription,
-      companyProfile.targetMarkets
+      new Date().toISOString().split('T')[0]
     )
     
     const result = await StructuredOutputService.structureText<StructuredOutput>(
@@ -56,9 +46,9 @@ export async function processVoiceMemo(audioData: FormData): Promise<StructuredO
       const enrichedData: StructuredOutput = {
         // OpenAI parsed data
         ...result.data,
-        // Required enum fields with defaults
-        isTarget: result.data.isTarget ?? TargetStatus.UNKNOWN,
-        icpFit: result.data.icpFit ?? ICPFitStatus.UNKNOWN,
+        // Add defaults for required fields
+        nextSteps: result.data.nextSteps || "N/A",
+        notes: result.data.notes || "N/A",
         // Source tracking
         hasBusinessCard: false,
         hasTextNote: false,

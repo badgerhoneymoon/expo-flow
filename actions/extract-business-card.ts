@@ -3,9 +3,7 @@
 import { 
   StructuredOutputSchema, 
   StructuredOutputResponse, 
-  StructuredOutput,
-  TargetStatus, 
-  ICPFitStatus 
+  StructuredOutput
 } from '@/types/structured-output-types'
 import { StructuredOutputService } from '@/lib/services/structured-output-service'
 import { getStructuredOutputPrompt } from '@/lib/prompts/structured-output-prompt'
@@ -14,16 +12,8 @@ import { getCompanyProfile } from './company-profile-actions'
 
 export async function extractBusinessCard(text: string): Promise<StructuredOutputResponse> {
   try {
-    // console.log('Tesseract Raw Output:', text)  // Commented out
-    
-    // Get company profile data
-    const companyProfile = await getCompanyProfile()
-    
     const prompt = getStructuredOutputPrompt(
-      new Date().toISOString().split('T')[0],
-      companyProfile.targetJobTitles,
-      companyProfile.icpDescription,
-      companyProfile.targetMarkets
+      new Date().toISOString().split('T')[0]
     )
     
     const result = await StructuredOutputService.structureText<StructuredOutput>(
@@ -40,9 +30,6 @@ export async function extractBusinessCard(text: string): Promise<StructuredOutpu
         // Add defaults for required fields
         nextSteps: result.data.nextSteps || "N/A",
         notes: result.data.notes || "N/A",
-        // Required enum fields with defaults
-        isTarget: result.data.isTarget ?? TargetStatus.UNKNOWN,
-        icpFit: result.data.icpFit ?? ICPFitStatus.UNKNOWN,
         // Source tracking
         hasBusinessCard: true,
         hasTextNote: false,

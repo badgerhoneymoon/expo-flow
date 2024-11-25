@@ -1,5 +1,6 @@
 import type { NewLead } from "@/db/schema/leads-schema"
 import type { StructuredOutput } from "@/types/structured-output-types"
+import { targetStatusEnum, icpFitStatusEnum } from "@/db/schema/leads-schema"
 
 export function structuredOutputToNewLead(output: StructuredOutput): Omit<NewLead, 'id'> {
   return {
@@ -24,11 +25,13 @@ export function structuredOutputToNewLead(output: StructuredOutput): Omit<NewLea
     companySize: output.companySize || null,
     companyBusiness: output.companyBusiness || null,
 
-    // Referral & Qualification
+    // Referral
     referral: output.referral,
-    isTarget: output.isTarget,
-    icpFit: output.icpFit || null,
-    qualificationReason: output.qualificationReason || null,
+
+    // Default qualification values
+    isTarget: "UNKNOWN",
+    icpFit: "UNKNOWN",
+    qualificationReason: null,
 
     // Follow-up
     contactTiming: output.contactTiming || null,

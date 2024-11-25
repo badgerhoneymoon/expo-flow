@@ -324,52 +324,58 @@ function longestCommonSubsequence(str1: string, str2: string): number {
  * - Industry and target markets
  * - Ideal Customer Profile (ICP)
  * 
- * @param company - Company name
  * @param url - Company website URL to analyze
  * @returns Formatted string with company insights or null if analysis fails
  */
-export async function enrichCompanyData(company: string, url: string): Promise<string | null> {
+export async function enrichCompanyData(url: string): Promise<{ industry?: string, valueProp?: string } | null> {
   if (!API_KEY || !exa) {
-    console.error('Exa API key is missing or Exa client is not initialized. Unable to perform enrichment.');
+    console.error('Exa API key is missing or Exa client is not initialized.');
     return null;
   }
 
   try {
-    console.log(`Enriching data for company: ${company}, URL: ${url}`);
+    console.log(`[Exa Enrichment] Starting enrichment for URL: ${url}`);
 
-    const result = await exa.searchAndContents(
-      url,
+    const result = await exa.getContents(
+      [url],
       {
-        type: "keyword",
-        numResults: 1,
+        text: true,
         summary: {
-          query: `You are an analyst who is an expert on marketing and ideal customer profiles (ICP). I'm analyzing ${company}, and your job is to analyze the website ${url}, focusing on case studies, customers, blog posts, and general information about the company's problem and solution. Be concise and return back the following information without including any headers or labels, just the answers separated by newlines:
-
-1. Value prop in 1 sentence
-2. B2C or B2B (or other relevant category like B2G)
-3. Industry
-4. Target industries
-5. ICP (Ideal Customer Profile)
-
-Provide only the answers, one per line, without any additional text or explanations.`
+          query: "Return only:\n1. Value proposition in 1 sentence\n2. Industry\n\nProvide only these two answers, one per line, without any additional text or labels."
         }
       }
-    ) as { results?: Array<{ summary?: string }> };
+    );
 
-    console.log('Raw result from Exa:', JSON.stringify(result, null, 2));
+    console.log('[Exa Enrichment] Raw API response:', JSON.stringify(result, null, 2));
 
-    if (result.results && result.results.length > 0 && result.results[0].summary) {
-      const summary = result.results[0].summary;
-      console.log('Summary found:', summary);
-      return summary;
-    } else {
-      console.log('No summary found in enrichment result. Full result:', JSON.stringify(result, null, 2));
+    // Type guard to ensure result is an array
+    if (!Array.isArray(result)) {
+      console.log('[Exa Enrichment] Result is not an array');
       return null;
     }
+
+    // Check if we have any results and if the first result has a summary
+    const firstResult = result[0];
+    if (!firstResult || typeof firstResult.summary !== 'string') {
+      console.log('[Exa Enrichment] No valid summary found in first result');
+      return null;
+    }
+
+    const summary = firstResult.summary;
+    console.log('[Exa Enrichment] Summary found:', summary);
+    
+    const [valueProp, industry] = summary.split('\n').map((line: string) => line.trim());
+    console.log('[Exa Enrichment] Parsed values:', { valueProp, industry });
+    
+    return {
+      valueProp: valueProp || undefined,
+      industry: industry || undefined
+    };
+
   } catch (error) {
-    console.error('Error enriching company data:', error);
+    console.error('[Exa Enrichment] Error:', error);
     if (error instanceof Error) {
-      console.error('Error details:', error.message, error.stack);
+      console.error('[Exa Enrichment] Error details:', error.message, error.stack);
     }
     return null;
   }

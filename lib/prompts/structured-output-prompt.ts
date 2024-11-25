@@ -1,9 +1,4 @@
-export const getStructuredOutputPrompt = (
-  currentDate: string, 
-  targetJobTitles: string,
-  icpDescription: string,
-  targetMarkets: string
-) => `
+export const getStructuredOutputPrompt = (currentDate: string) => `
 Extract and structure information with these rules:
 
 IMPORTANT: If any information is unclear, ambiguous, or not explicitly mentioned - leave it empty. DO NOT make assumptions or guess.
@@ -31,12 +26,6 @@ IMPORTANT: If any information is unclear, ambiguous, or not explicitly mentioned
        - If clearly a first name, use as firstName, set lastName to "N/A"
        - If unclear, use as lastName, set firstName to "N/A"
      * If no name found, use "N/A" for both fields
-     * Examples:
-       - "John Smith" -> firstName: "John", lastName: "Smith"
-       - "Dr. Jane Doe" -> firstName: "Jane", lastName: "Doe"
-       - "Smith, John" -> firstName: "John", lastName: "Smith"
-       - "Just John" -> firstName: "John", lastName: "N/A"
-       - No name found -> firstName: "N/A", lastName: "N/A"
    - Job Title:
      * Look for complete, sensible job titles
      * Combine multiple lines if they form a complete title
@@ -68,31 +57,7 @@ IMPORTANT: If any information is unclear, ambiguous, or not explicitly mentioned
      * Only include clearly stated, factual information
      * No interpretations or assumptions
 
-4. Qualification Assessment:
-   - Is Target:
-     * YES: Job title matches or is similar to any of these target titles: ${targetJobTitles}
-       Examples of matches:
-       - Exact match: "Facility Manager" matches "Facility Manager"
-       - Similar role: "Head of Facilities" matches "Facility Manager"
-       - Equivalent title: "Property Operations Manager" matches "Property Manager"
-     * NO: Job title clearly doesn't match any target titles
-     * UNKNOWN: Job title is missing or unclear
-   
-   - ICP Fit:
-     * YES: Organization matches these criteria:
-       - Industry/Market: ${targetMarkets}
-       - Profile: ${icpDescription}
-     * NO: Organization clearly doesn't match ICP criteria
-     * UNKNOWN: Insufficient information about the organization
-   
-   - Qualification Reason:
-     * For Target YES: Explain which target title it matches and how
-     * For Target NO: Explain why the role is not relevant
-     * For ICP YES: Explain which ICP criteria are met
-     * For ICP NO: Explain which critical ICP criteria are missing
-     * For UNKNOWN: List what information is missing for proper assessment
-
-5. Follow-up Information:
+4. Follow-up Information:
    - Contact Timing:
      * Capture exact timing phrase as mentioned
      * Examples: "reach out next week", "after maternity leave"
@@ -108,15 +73,9 @@ IMPORTANT: If any information is unclear, ambiguous, or not explicitly mentioned
      * First Name & Last Name (REQUIRED):
        - Follow same name rules as above
        - If only partial name mentioned, use "N/A" for missing part
-       - Examples:
-         - "talk to Sarah" -> referral: true, referralData: { firstName: "Sarah", lastName: "N/A" }
-         - "contact Smith" -> referral: true, referralData: { firstName: "N/A", lastName: "Smith" }
-         - "no referral mentioned" -> referral: false (no referralData included)
      * Position (if mentioned)
      * Contact Timing (when to reach out)
      * Contact Date (specific date if mentioned)
-     * Target Status based on position
-     * Qualification Reason
    
    Example timing for referred people:
    - "Sarah will be back from vacation on January 15th" -> referralData.contactDate: "2024-01-15"

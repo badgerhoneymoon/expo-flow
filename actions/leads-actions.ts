@@ -2,13 +2,10 @@
 
 import { revalidatePath } from "next/cache"
 import * as queries from "@/db/queries/leads-queries"
-import { 
-  StructuredOutput,
-  TargetStatus,
-  ICPFitStatus 
-} from "@/types/structured-output-types"
+import { StructuredOutput } from "@/types/structured-output-types"
 import { structuredOutputToNewLead } from "@/lib/utils/structured-output-converter"
-import { searchCompanyUrl } from "@/lib/services/exa-service"
+import { searchCompanyUrl, enrichCompanyData } from "@/lib/services/exa-service"
+import { targetStatusEnum, icpFitStatusEnum } from "@/db/schema/leads-schema"
 
 export async function getLeads() {
   try {
@@ -57,7 +54,6 @@ export async function createLead(structuredOutput: StructuredOutput) {
         companyIndustry: structuredOutput.companyIndustry === "N/A" ? existingLead.companyIndustry : (structuredOutput.companyIndustry || existingLead.companyIndustry),
         companySize: structuredOutput.companySize === "N/A" ? existingLead.companySize : (structuredOutput.companySize || existingLead.companySize),
         companyBusiness: structuredOutput.companyBusiness === "N/A" ? existingLead.companyBusiness : (structuredOutput.companyBusiness || existingLead.companyBusiness),
-        qualificationReason: structuredOutput.qualificationReason === "N/A" ? existingLead.qualificationReason : (structuredOutput.qualificationReason || existingLead.qualificationReason),
         contactTiming: structuredOutput.contactTiming === "N/A" ? existingLead.contactTiming : (structuredOutput.contactTiming || existingLead.contactTiming),
         contactDate: structuredOutput.contactDate === "N/A" ? existingLead.contactDate : (structuredOutput.contactDate || existingLead.contactDate),
         followUpTemplate: structuredOutput.followUpTemplate === "N/A" ? existingLead.followUpTemplate : (structuredOutput.followUpTemplate || existingLead.followUpTemplate),
@@ -72,9 +68,10 @@ export async function createLead(structuredOutput: StructuredOutput) {
         rawTextNote: structuredOutput.rawTextNote || existingLead.rawTextNote,
         rawVoiceMemo: structuredOutput.rawVoiceMemo || existingLead.rawVoiceMemo,
         
-        // Enum fields don't need N/A handling
-        isTarget: structuredOutput.isTarget === 'UNKNOWN' ? existingLead.isTarget : structuredOutput.isTarget,
-        icpFit: structuredOutput.icpFit === 'UNKNOWN' ? existingLead.icpFit : structuredOutput.icpFit,
+        // Keep existing qualification data
+        isTarget: existingLead.isTarget,
+        icpFit: existingLead.icpFit,
+        qualificationReason: existingLead.qualificationReason,
         
         // Boolean fields don't need N/A handling
         referral: structuredOutput.referral || existingLead.referral,
@@ -82,11 +79,17 @@ export async function createLead(structuredOutput: StructuredOutput) {
       
       updatedOrNewLead = await queries.updateLead(existingLead.id, updatedData)
     } else {
-      // Create new lead
-      updatedOrNewLead = await queries.createLead(structuredOutputToNewLead(structuredOutput))
+      // Create new lead with default qualification values
+      const newLeadData = {
+        ...structuredOutputToNewLead(structuredOutput),
+        isTarget: targetStatusEnum.enumValues[2],
+        icpFit: icpFitStatusEnum.enumValues[2],
+        qualificationReason: null
+      }
+      updatedOrNewLead = await queries.createLead(newLeadData)
     }
 
-    // Handle referral if present - now using the updated/new lead data
+    // Handle referral if present
     if (structuredOutput.referral && structuredOutput.referralData) {
       // Get the most up-to-date company information from the database
       const sourceLeadWithEnrichedData = await queries.getLead(updatedOrNewLead.id)
@@ -99,29 +102,19 @@ export async function createLead(structuredOutput: StructuredOutput) {
         firstName: structuredOutput.referralData.firstName,
         lastName: structuredOutput.referralData.lastName,
         jobTitle: structuredOutput.referralData.position,
-        // Use the enriched company data from the source lead, handle null values
         company: sourceLeadWithEnrichedData.company || undefined,
         website: sourceLeadWithEnrichedData.website || undefined,
         companyIndustry: sourceLeadWithEnrichedData.companyIndustry || undefined,
         companySize: sourceLeadWithEnrichedData.companySize || undefined,
         companyBusiness: sourceLeadWithEnrichedData.companyBusiness || undefined,
-        // Inherit main interest from source lead
         mainInterest: sourceLeadWithEnrichedData.mainInterest || undefined,
-        // Required fields with defaults
         nextSteps: "Follow up with referred contact",
         notes: `Referred by ${sourceLeadWithEnrichedData.firstName || ''} ${sourceLeadWithEnrichedData.lastName || ''}`,
-        // Referral specific data
         contactTiming: structuredOutput.referralData.contactTiming,
         contactDate: structuredOutput.referralData.contactDate,
-        // Source tracking - inherit from the current source
         hasBusinessCard: structuredOutput.hasBusinessCard,
         hasTextNote: structuredOutput.hasTextNote,
         hasVoiceMemo: structuredOutput.hasVoiceMemo,
-        // Use target assessment from referral data
-        isTarget: structuredOutput.referralData.isTarget ?? TargetStatus.UNKNOWN,
-        icpFit: ICPFitStatus.UNKNOWN, // Keep ICP as UNKNOWN since we need more info
-        qualificationReason: structuredOutput.referralData.qualificationReason,
-        // This person was referred by someone
         referral: true
       }
 
@@ -131,7 +124,7 @@ export async function createLead(structuredOutput: StructuredOutput) {
       // Update the source lead to referral: false since they did the referring
       const updatedSourceData = {
         ...updatedOrNewLead,
-        referral: false // This person made a referral but wasn't referred themselves
+        referral: false
       }
       updatedOrNewLead = await queries.updateLead(updatedOrNewLead.id, updatedSourceData)
     }
@@ -176,27 +169,72 @@ export async function deleteLead(id: string) {
 
 export async function findMissingWebsites() {
   try {
-    // Get all leads without websites or with N/A websites
+    console.log('[Website Finding] Starting to find missing websites');
     const leads = await queries.getLeadsWithoutWebsites()
+    console.log(`[Website Finding] Found ${leads.length} leads without websites`);
     
     let updatedCount = 0
+    let enrichedCount = 0
+    
     for (const lead of leads) {
-      if (!lead.company || lead.company === "N/A") continue
+      console.log(`[Website Finding] Processing lead: ${lead.id} (${lead.company})`);
+      
+      if (!lead.company || lead.company === "N/A") {
+        console.log(`[Website Finding] Skipping lead ${lead.id} - no valid company name`);
+        continue;
+      }
       
       const { primaryUrl } = await searchCompanyUrl(lead.company)
+      console.log(`[Website Finding] Found URL for ${lead.company}:`, primaryUrl);
       
       if (primaryUrl) {
-        await queries.updateLead(lead.id, {
+        // First update the website
+        console.log(`[Website Finding] Updating website for lead ${lead.id}`);
+        const websiteUpdate = await queries.updateLead(lead.id, {
           website: primaryUrl
         })
+        console.log(`[Website Finding] Website update result:`, websiteUpdate);
         updatedCount++
+        
+        // Then try to enrich the data
+        console.log(`[Website Finding] Starting enrichment for lead ${lead.id}`);
+        const enrichmentData = await enrichCompanyData(primaryUrl)
+        console.log(`[Website Finding] Enrichment data received:`, enrichmentData);
+        
+        if (enrichmentData) {
+          const updateData = {
+            companyIndustry: enrichmentData.industry || undefined,
+            companyBusiness: enrichmentData.valueProp || undefined
+          };
+          console.log(`[Website Finding] Updating lead ${lead.id} with enrichment data:`, updateData);
+          
+          const enrichmentUpdate = await queries.updateLead(lead.id, updateData)
+          console.log(`[Website Finding] Enrichment update result:`, enrichmentUpdate);
+          enrichedCount++
+        } else {
+          console.log(`[Website Finding] No enrichment data received for lead ${lead.id}`);
+        }
+      } else {
+        console.log(`[Website Finding] No website found for lead ${lead.id}`);
       }
     }
     
+    console.log(`[Website Finding] Process completed. Processed: ${leads.length}, Updated: ${updatedCount}, Enriched: ${enrichedCount}`);
+    
     revalidatePath("/leads")
-    return { success: true, data: { processedCount: leads.length, updatedCount } }
+    return { 
+      success: true, 
+      data: { 
+        processedCount: leads.length, 
+        updatedCount,
+        enrichedCount 
+      } 
+    }
   } catch (error) {
-    console.error('Error finding missing websites:', error)
+    console.error('[Website Finding] Error:', error);
+    if (error instanceof Error) {
+      console.error('[Website Finding] Error details:', error.message, error.stack);
+    }
     return { success: false, error: "Failed to process missing websites" }
   }
 } 
