@@ -57,10 +57,22 @@ function LinkCell({ url, icon: Icon, isEmail = false }: { url: string | null, ic
 }
 
 // Add this component above the LeadsTable component
-function FindWebsitesButton() {
+function FindWebsitesButton({ leads }: { leads: Lead[] }) {
   const [isProcessing, setIsProcessing] = useState(false)
+  
+  // Count leads without websites
+  const leadsWithoutWebsites = leads.filter(lead => 
+    !lead.website || lead.website === "N/A" || lead.website === ""
+  ).length
 
   const handleClick = async () => {
+    if (leadsWithoutWebsites === 0) {
+      toast.info("No missing websites", {
+        description: "All leads already have websites"
+      })
+      return
+    }
+
     setIsProcessing(true)
     try {
       const result = await findMissingWebsites()
@@ -103,7 +115,7 @@ function FindWebsitesButton() {
         )} 
       />
       <span className={isProcessing ? "text-muted-foreground" : ""}>
-        {isProcessing ? "Processing..." : "Find Missing Websites"}
+        {isProcessing ? "Processing..." : `Find Missing Websites${leadsWithoutWebsites > 0 ? ` (${leadsWithoutWebsites})` : ''}`}
       </span>
       {isProcessing && (
         <div className="absolute right-2 top-1/2 -translate-y-1/2">
@@ -124,7 +136,7 @@ export default function LeadsTable({ leads }: LeadsTableProps) {
       <CardHeader className="flex flex-row items-center justify-between">
         <div className="flex items-center gap-4">
           <CardTitle>Leads</CardTitle>
-          <FindWebsitesButton />
+          <FindWebsitesButton leads={leads} />
         </div>
         <div className="flex items-center gap-4">
           <div className="flex flex-col items-center gap-1">
