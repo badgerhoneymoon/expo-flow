@@ -288,4 +288,38 @@ export async function findMissingWebsites() {
     console.error('[Website Processing] Error:', error);
     return { success: false, error: "Failed to process websites and enrichments" }
   }
+}
+
+export async function updateLeadsLinkedIn(profiles: Array<{ leadId: string, linkedin: string }>) {
+  try {
+    console.log('[LinkedIn Update] Starting to update profiles:', profiles);
+    
+    const updates = await Promise.all(
+      profiles.map(async profile => {
+        try {
+          return await queries.updateLeadLinkedIn(profile.leadId, profile.linkedin);
+        } catch (error) {
+          console.error(`[LinkedIn Update] Failed to update lead ${profile.leadId}:`, error);
+          return null;
+        }
+      })
+    );
+
+    const successfulUpdates = updates.filter(Boolean);
+    
+    console.log(`[LinkedIn Update] Completed. Updated ${successfulUpdates.length} profiles`);
+    
+    revalidatePath("/leads");
+    
+    return { 
+      success: true, 
+      data: { 
+        updatedCount: successfulUpdates.length,
+        failedCount: profiles.length - successfulUpdates.length
+      } 
+    };
+  } catch (error) {
+    console.error('[LinkedIn Update] Error:', error);
+    return { success: false, error: "Failed to update LinkedIn profiles" };
+  }
 } 

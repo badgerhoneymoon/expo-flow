@@ -104,4 +104,25 @@ export async function getLeadsWithoutWebsites() {
         sql`${leads.website} IS NULL`
       )
     )
+}
+
+export async function updateLeadLinkedIn(id: string, linkedin: string): Promise<Lead> {
+  try {
+    console.log(`[DB Update] Updating LinkedIn for lead ${id} with: ${linkedin}`);
+    
+    const [updatedLead] = await db
+      .update(leads)
+      .set({ 
+        linkedin,
+        updatedAt: new Date() 
+      })
+      .where(eq(leads.id, id))
+      .returning()
+    
+    console.log(`[DB Update] LinkedIn update result:`, updatedLead);
+    return updatedLead;
+  } catch (error) {
+    console.error("[DB Update] Error updating lead LinkedIn:", error);
+    throw new Error("Failed to update lead LinkedIn");
+  }
 } 

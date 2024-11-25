@@ -29,6 +29,8 @@ import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import { qualifyLeads } from "@/actions/qualification-actions"
 import { useRouter } from "next/navigation"
+import { mockEnrichLinkedInProfiles } from "@/lib/services/mock-linkedin-service"
+import { updateLeadsLinkedIn } from "@/actions/leads-actions"
 
 // Modified LinkCell component to handle emails specially
 function LinkCell({ url, icon: Icon, isEmail = false }: { url: string | null, icon: any, isEmail?: boolean }) {
@@ -225,6 +227,97 @@ function ScoreButton({ leads }: { leads: Lead[] }) {
   )
 }
 
+function EnrichLinkedInButton({ leads }: { leads: Lead[] }) {
+  const [isProcessing, setIsProcessing] = useState(false)
+  const router = useRouter()
+  
+  // Count qualified leads that need LinkedIn enrichment
+  const leadsToEnrich = leads.filter(lead => 
+    // Check if lead is qualified
+    lead.isTarget === targetStatusEnum.enumValues[0] && // "YES"
+    lead.icpFit === icpFitStatusEnum.enumValues[0] && // "YES"
+    // Check if lead needs LinkedIn
+    (!lead.linkedin || lead.linkedin === "N/A" || lead.linkedin === "")
+  ).length
+
+  const handleClick = async () => {
+    if (leadsToEnrich === 0) {
+      toast.info("No leads to enrich", {
+        description: "No qualified leads without LinkedIn profiles"
+      })
+      return
+    }
+
+    setIsProcessing(true)
+    try {
+      const result = await mockEnrichLinkedInProfiles(leads)
+      
+      if (result.success && result.data) {
+        // Update the leads in the database
+        const updateResult = await updateLeadsLinkedIn(result.data.profiles)
+        
+        if (updateResult.success && updateResult.data) {
+          toast.success("LinkedIn Enrichment Complete", {
+            description: `Updated ${updateResult.data.updatedCount} LinkedIn profiles`
+          })
+
+          if (updateResult.data.failedCount > 0) {
+            toast.warning("Some updates failed", {
+              description: `Failed to update ${updateResult.data.failedCount} profiles`
+            })
+          }
+
+          router.refresh()
+        } else {
+          toast.error("Error", {
+            description: updateResult.error || "Failed to update LinkedIn profiles"
+          })
+        }
+      } else {
+        toast.error("Error", {
+          description: result.error || "Failed to enrich LinkedIn profiles"
+        })
+      }
+    } catch (error) {
+      toast.error("Error", {
+        description: "Failed to enrich LinkedIn profiles"
+      })
+    } finally {
+      setIsProcessing(false)
+    }
+  }
+
+  return (
+    <Button
+      variant="outline"
+      size="sm"
+      onClick={handleClick}
+      disabled={isProcessing}
+      className={cn(
+        "relative gap-2",
+        isProcessing && "pr-8",
+        "hover:border-emerald-500/50 hover:bg-emerald-500/10 hover:text-emerald-500",
+        "active:scale-95 transition-transform duration-75"
+      )}
+    >
+      <Linkedin 
+        className={cn(
+          "h-4 w-4",
+          isProcessing && "text-muted-foreground animate-pulse"
+        )} 
+      />
+      <span className={isProcessing ? "text-muted-foreground" : ""}>
+        {isProcessing ? "Processing..." : `Find LinkedIn${leadsToEnrich > 0 ? ` (${leadsToEnrich})` : ''}`}
+      </span>
+      {isProcessing && (
+        <div className="absolute right-2 top-1/2 -translate-y-1/2">
+          <div className="h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" />
+        </div>
+      )}
+    </Button>
+  )
+}
+
 function FilterSwitch({ checked, onCheckedChange }: { checked: boolean; onCheckedChange: (checked: boolean) => void }) {
   return (
     <div className="flex items-center gap-2">
@@ -277,6 +370,7 @@ export default function LeadsTable({ leads }: LeadsTableProps) {
           <div className="flex items-center gap-2">
             <FindWebsitesButton leads={leads} />
             <ScoreButton leads={leads} />
+            <EnrichLinkedInButton leads={leads} />
           </div>
         </div>
         <div className="flex items-center gap-6">
