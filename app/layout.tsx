@@ -40,6 +40,12 @@ export default function RootLayout({
               >
                 Leads
               </Link>
+              <Link 
+                href="/voice-memos" 
+                className="text-sm font-medium hover:text-primary"
+              >
+                Voice Memos
+              </Link>
             </div>
           </div>
         </nav>

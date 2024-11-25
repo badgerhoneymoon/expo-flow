@@ -9,7 +9,7 @@ export default async function Dashboard() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-8">Tradeshow Lead Enrichment</h1>
+      <h1 className="text-3xl font-bold mb-8">CES Las Vegas Lead Enrichment</h1>
       <div className="space-y-8">
         <UploadForm />
         {error && (
