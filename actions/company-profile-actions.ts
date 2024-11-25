@@ -27,9 +27,12 @@ Key indicators: Properties with regular tenant/visitor parking needs, interest i
 - Transport authorities
 Key indicators: Focus on sustainable transport, climate initiatives, or public infrastructure
 
+Disqualifying Factors (any of these):
+- Single charging station requirements
+- Small properties
+- No clear expansion plans for EV infrastructure
+
 Qualifying Factors (any of these):
-- Properties with dedicated parking spaces
-- Locations with medium to high dwell time
 - Areas with growing EV adoption
 - Interest in sustainability initiatives
 - Looking to add tenant/visitor amenities
