@@ -4,7 +4,7 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
-import { ImagePlus, FileText, Mic, Check } from 'lucide-react'
+import { ImagePlus, FileText, Mic, Check, Sparkles } from 'lucide-react'
 import { extractBusinessCard } from '@/actions/extract-business-card'
 import { OCRService } from '@/lib/services/ocr-service'
 import { processVoiceMemo } from '@/actions/process-voice-memo'
@@ -227,7 +227,14 @@ export default function UploadForm() {
             onClick={processFiles}
             disabled={isProcessing || files.length === 0}
           >
-            {isProcessing ? 'Processing...' : 'Process Data'}
+            {isProcessing ? (
+              'Processing...'
+            ) : (
+              <span className="flex items-center gap-2">
+                Process Data
+                <Sparkles className="h-4 w-4" />
+              </span>
+            )}
           </RainbowButton>
         </div>
       </CardContent>
