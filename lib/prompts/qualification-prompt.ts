@@ -3,7 +3,6 @@ export const getQualificationPrompt = (
     companyName: string;
     website: string;
     description: string;
-    minimumDealSize: string;
     targetMarkets: string;
     targetJobTitles: string;
     icpDescription: string;

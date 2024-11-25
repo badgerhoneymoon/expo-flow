@@ -1,61 +1,47 @@
 export const generateFollowUpPrompt = (lead: {
-  // Basic info
   firstName: string | null
   lastName: string | null
-  jobTitle: string | null
-  company: string | null
-  
-  // Context
+  eventName: string | null
   mainInterest: string | null
   notes: string | null
-  eventName: string | null
   referral: boolean
 }) => {
   const fullName = [lead.firstName, lead.lastName].filter(Boolean).join(" ")
-  
-  // Get referrer name from notes if it's a referral
   const referrerName = lead.referral ? 
     lead.notes?.match(/Referred by ([^.]+)/)?.[1]?.trim() : null
+  
+  // Default to CES if no event name provided
+  const eventContext = lead.eventName || "CES in Las Vegas"
 
-  const interactionContext = [
-    lead.eventName && `met at ${lead.eventName}`,
-    lead.mainInterest && `discussed ${lead.mainInterest}`,
-  ].filter(Boolean).join(", ")
+  return `Write a brief LinkedIn message for a trade show lead we're already connected with. Keep it natural and focused on our meeting.
 
-  return `Please write a concise LinkedIn connection request/follow-up message with the following context:
-
-RECIPIENT:
-- Name: ${fullName}
-- Position: ${lead.jobTitle || "Unknown position"}
-- Company: ${lead.company || "Unknown company"}
-
-${lead.referral ? 
-  `REFERRAL:
-Referred by: ${referrerName || "someone from your team"}` 
-  : 
-  `CONTEXT:
-${interactionContext || "No specific interaction details available"}`
+Context:
+${lead.referral 
+  ? `- ${referrerName} referred me to connect with ${fullName}`
+  : `- Met ${fullName} at ${eventContext}`
 }
+${lead.mainInterest ? `- We discussed ${lead.mainInterest}` : ''}
 
 Requirements:
-1. Keep it under 300 characters (LinkedIn limit)
-2. Be professional yet personable
-3. ${lead.referral ? 
-     `Mention that ${referrerName || "your colleague"} recommended connecting` : 
-     "Reference our meeting/interaction briefly"}
-4. Include a clear reason for connecting
-5. No generic messages
+- Must be under 300 characters
+- Start with a simple "Hi [Name]"
+- Reference the trade show meeting or referral as the main point
+- No fluffy language or "impressed by your work" type phrases
+- Keep it short and straightforward
+- If we discussed something specific, mention it briefly
+- Do NOT include any signature or closing
+- Do NOT ask to connect (we're already connected)
+- End naturally with a relevant point about our discussion or potential collaboration
 
-Please provide the connection message in plain text format.`
+Please provide just the message text.`
 }
 
 export interface FollowUpResponse {
   message: string
 }
 
-export const followUpSystemPrompt = `You are an expert B2B networker with excellent LinkedIn communication skills.
-Your task is to write personalized, concise LinkedIn connection requests and follow-up messages.
-Focus on building genuine professional connections.
-Always be brief (under 300 characters), authentic, and value-focused.
-Never be generic or overly formal.
-Format your response as a JSON object with a 'message' field.` 
+export const followUpSystemPrompt = `You are writing brief LinkedIn messages to trade show contacts you're already connected with.
+Focus on the real connection point - meeting at the trade show or getting a referral.
+Be direct and professional, avoid any "salesy" or overly enthusiastic language.
+Keep messages short and authentic.
+Never add signatures or connection requests - we're already connected.` 

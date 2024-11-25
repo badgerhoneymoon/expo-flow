@@ -1,24 +1,17 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+import { getCompanyProfile } from "@/actions/company-profile-actions"
 
 interface CompanyProfile {
   companyName: string
   website: string
   description: string
-  minimumDealSize: string
   targetMarkets: string
   targetJobTitles: string
   icpDescription: string
@@ -26,14 +19,21 @@ interface CompanyProfile {
 
 export default function CompanyProfile() {
   const [profile, setProfile] = useState<CompanyProfile>({
-    companyName: "Blink Charging",
-    website: "blinkcharging.com",
-    description: "Leading provider of EV charging stations and networks. We design, manufacture, and operate charging infrastructure for electric vehicles.",
-    minimumDealSize: "50k-100k",
-    targetMarkets: "Hotels, Multi-Unit Residential, Commercial Real Estate, Retail, Municipalities",
-    targetJobTitles: "Facility Manager, Property Manager, Sustainability Manager, Operations Manager",
-    icpDescription: "Commercial properties with multiple parking spaces, high-traffic locations, or multi-unit residential buildings. Looking for locations with significant dwell time and EV adoption in the area. Must have budget for enterprise-level charging infrastructure."
+    companyName: "",
+    website: "",
+    description: "",
+    targetMarkets: "",
+    targetJobTitles: "",
+    icpDescription: ""
   })
+
+  useEffect(() => {
+    const loadProfile = async () => {
+      const data = await getCompanyProfile()
+      setProfile(data)
+    }
+    loadProfile()
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -92,23 +92,6 @@ export default function CompanyProfile() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="minimum-deal-size">Minimum Deal Size</Label>
-              <Select 
-                onValueChange={value => handleChange('minimumDealSize', value)}
-                defaultValue={profile.minimumDealSize}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select minimum deal size" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="10k-50k">$10k - $50k</SelectItem>
-                  <SelectItem value="50k-100k">$50k - $100k</SelectItem>
-                  <SelectItem value="100k+">$100k+</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
               <Label htmlFor="target-markets">Target Markets/Industries</Label>
               <Input 
                 id="target-markets" 
@@ -132,7 +115,7 @@ export default function CompanyProfile() {
               <Label htmlFor="icp-description">Ideal Customer Profile (ICP)</Label>
               <Textarea 
                 id="icp-description" 
-                rows={4}
+                rows={25}
                 value={profile.icpDescription}
                 onChange={e => handleChange('icpDescription', e.target.value)}
                 required

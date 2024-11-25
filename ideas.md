@@ -14,3 +14,6 @@ December 20th to explore potential collaboration opportunities.
 - we need to add logic for Missing webiste button - if we have multiple leads with the same 
 company 
 we should run exa api just once
+
+Sarah Williams - пограничный кейс, нужно более четкий кейс для дисквалификации
+Поменять данные в Company Profile tab
