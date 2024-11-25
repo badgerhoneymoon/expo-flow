@@ -12,6 +12,7 @@ import { processTextNotes } from '@/actions/process-text-notes'
 import { RainbowButton } from "@/components/ui/rainbow-button"
 import { cn } from "@/lib/utils"
 import { motion } from 'framer-motion'
+import { UploadProgress } from "./upload-progress"
 
 interface FileUpload {
   file: File
@@ -210,36 +211,12 @@ export default function UploadForm() {
         {files.length > 0 && (
           <div className="space-y-4 max-w-lg mx-auto">
             {files.map((file, index) => (
-              <div key={index} className="space-y-2">
-                <div className="flex justify-between text-sm items-center">
-                  <span>{file.file.name}</span>
-                  <div className="flex items-center gap-2">
-                    <span>{file.progress}%</span>
-                    {file.progress === 100 && (
-                      <motion.div
-                        initial={{ scale: 0, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        transition={{
-                          type: "spring",
-                          stiffness: 300,
-                          damping: 20
-                        }}
-                      >
-                        <Check className="h-4 w-4 text-green-500" />
-                      </motion.div>
-                    )}
-                  </div>
-                </div>
-                <Progress 
-                  value={file.progress} 
-                  className={cn(
-                    "h-2 transition-colors duration-300",
-                    file.progress === 100 ? "bg-green-100" : "bg-secondary",
-                    "[&>div]:transition-all [&>div]:duration-300",
-                    file.progress === 100 && "[&>div]:bg-green-500"
-                  )} 
-                />
-              </div>
+              <UploadProgress
+                key={index}
+                fileName={file.file.name}
+                progress={file.progress}
+                status={file.progress === 100 ? "complete" : "uploading"}
+              />
             ))}
           </div>
         )}

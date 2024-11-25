@@ -25,6 +25,8 @@ import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
 import { useState } from "react"
 import { cn } from "@/lib/utils"
+import { Switch } from "@/components/ui/switch"
+import { Label } from "@/components/ui/label"
 
 // Modified LinkCell component to handle emails specially
 function LinkCell({ url, icon: Icon, isEmail = false }: { url: string | null, icon: any, isEmail?: boolean }) {
@@ -190,11 +192,39 @@ function ScoreButton({ leads }: { leads: Lead[] }) {
   )
 }
 
+function FilterSwitch({ checked, onCheckedChange }: { checked: boolean; onCheckedChange: (checked: boolean) => void }) {
+  return (
+    <div className="flex items-center gap-2">
+      <Switch
+        id="filter-qualified"
+        checked={checked}
+        onCheckedChange={onCheckedChange}
+        className="data-[state=checked]:bg-green-500"
+      />
+      <Label 
+        htmlFor="filter-qualified" 
+        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+      >
+        Show Qualified Only
+      </Label>
+    </div>
+  )
+}
+
 interface LeadsTableProps {
   leads: Lead[]
 }
 
 export default function LeadsTable({ leads }: LeadsTableProps) {
+  const [showQualifiedOnly, setShowQualifiedOnly] = useState(false)
+  
+  const filteredLeads = showQualifiedOnly 
+    ? leads.filter(lead => 
+        lead.isTarget === targetStatusEnum.enumValues[0] && // "YES"
+        lead.icpFit === icpFitStatusEnum.enumValues[0] // "YES"
+      )
+    : leads
+
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
@@ -205,32 +235,38 @@ export default function LeadsTable({ leads }: LeadsTableProps) {
             <ScoreButton leads={leads} />
           </div>
         </div>
-        <div className="flex items-center gap-4">
-          <div className="flex flex-col items-center gap-1">
-            <div className="text-xs text-muted-foreground">Total</div>
-            <Badge variant="outline" className="min-w-[3rem] justify-center text-base font-semibold">
-              {leads.length}
-            </Badge>
-          </div>
+        <div className="flex items-center gap-6">
+          <FilterSwitch 
+            checked={showQualifiedOnly}
+            onCheckedChange={setShowQualifiedOnly}
+          />
+          <div className="flex items-center gap-4">
+            <div className="flex flex-col items-center gap-1">
+              <div className="text-xs text-muted-foreground">Total</div>
+              <Badge variant="outline" className="min-w-[3rem] justify-center text-base font-semibold">
+                {leads.length}
+              </Badge>
+            </div>
 
-          <div className="flex flex-col items-center gap-1">
-            <div className="text-xs text-muted-foreground">Targets</div>
-            <Badge 
-              variant={leads.filter(l => l.isTarget === targetStatusEnum.enumValues[0]).length > 0 ? "success" : "outline"} // "YES"
-              className="min-w-[3rem] justify-center text-base font-semibold"
-            >
-              {leads.filter(l => l.isTarget === targetStatusEnum.enumValues[0]).length}
-            </Badge>
-          </div>
+            <div className="flex flex-col items-center gap-1">
+              <div className="text-xs text-muted-foreground">Targets</div>
+              <Badge 
+                variant={leads.filter(l => l.isTarget === targetStatusEnum.enumValues[0]).length > 0 ? "success" : "outline"} // "YES"
+                className="min-w-[3rem] justify-center text-base font-semibold"
+              >
+                {leads.filter(l => l.isTarget === targetStatusEnum.enumValues[0]).length}
+              </Badge>
+            </div>
 
-          <div className="flex flex-col items-center gap-1">
-            <div className="text-xs text-muted-foreground">ICP Fit</div>
-            <Badge 
-              variant={leads.filter(l => l.icpFit === icpFitStatusEnum.enumValues[0]).length > 0 ? "success" : "outline"} // "YES"
-              className="min-w-[3rem] justify-center text-base font-semibold"
-            >
-              {leads.filter(l => l.icpFit === icpFitStatusEnum.enumValues[0]).length}
-            </Badge>
+            <div className="flex flex-col items-center gap-1">
+              <div className="text-xs text-muted-foreground">ICP Fit</div>
+              <Badge 
+                variant={leads.filter(l => l.icpFit === icpFitStatusEnum.enumValues[0]).length > 0 ? "success" : "outline"} // "YES"
+                className="min-w-[3rem] justify-center text-base font-semibold"
+              >
+                {leads.filter(l => l.icpFit === icpFitStatusEnum.enumValues[0]).length}
+              </Badge>
+            </div>
           </div>
         </div>
       </CardHeader>
@@ -277,7 +313,7 @@ export default function LeadsTable({ leads }: LeadsTableProps) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {leads.map((lead, index) => (
+            {filteredLeads.map((lead, index) => (
               <motion.tr
                 key={lead.id}
                 initial={{ opacity: 0, y: 20 }}
