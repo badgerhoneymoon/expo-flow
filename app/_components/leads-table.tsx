@@ -27,6 +27,8 @@ import { useState } from "react"
 import { cn } from "@/lib/utils"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
+import { qualifyLeads } from "@/actions/qualification-actions"
+import { useRouter } from "next/navigation"
 
 // Modified LinkCell component to handle emails specially
 function LinkCell({ url, icon: Icon, isEmail = false }: { url: string | null, icon: any, isEmail?: boolean }) {
@@ -128,18 +130,19 @@ function FindWebsitesButton({ leads }: { leads: Lead[] }) {
   )
 }
 
-// Add this new component above the LeadsTable component
+// Update the ScoreButton component
 function ScoreButton({ leads }: { leads: Lead[] }) {
   const [isProcessing, setIsProcessing] = useState(false)
+  const router = useRouter()
   
   // Count leads that need scoring (those with UNKNOWN status)
   const leadsToScore = leads.filter(lead => 
     lead.isTarget === targetStatusEnum.enumValues[2] || // "UNKNOWN"
     lead.icpFit === icpFitStatusEnum.enumValues[2] // "UNKNOWN"
-  ).length
+  )
 
   const handleClick = async () => {
-    if (leadsToScore === 0) {
+    if (leadsToScore.length === 0) {
       toast.info("No leads to score", {
         description: "All leads already have target and ICP status"
       })
@@ -148,13 +151,30 @@ function ScoreButton({ leads }: { leads: Lead[] }) {
 
     setIsProcessing(true)
     try {
-      // TODO: Implement scoring action
-      toast.info("Coming soon", {
-        description: "Lead scoring functionality will be available soon"
-      })
+      const result = await qualifyLeads(leadsToScore.map(lead => lead.id))
+      
+      if (result.success && result.data) {
+        toast.success("Leads Scored", {
+          description: `Successfully scored ${result.data.successful} out of ${result.data.total} leads`
+        })
+
+        // If any leads failed, show a warning
+        if (result.data.failed > 0) {
+          toast.warning("Some leads failed", {
+            description: `Failed to score ${result.data.failed} leads`
+          })
+        }
+
+        // Refresh the page data
+        router.refresh()
+      } else {
+        toast.error("Error", {
+          description: "Failed to score leads"
+        })
+      }
     } catch (error) {
       toast.error("Error", {
-        description: "Failed to score leads",
+        description: "Failed to score leads"
       })
     } finally {
       setIsProcessing(false)
@@ -181,7 +201,7 @@ function ScoreButton({ leads }: { leads: Lead[] }) {
         )} 
       />
       <span className={isProcessing ? "text-muted-foreground" : ""}>
-        {isProcessing ? "Processing..." : `Score Leads${leadsToScore > 0 ? ` (${leadsToScore})` : ''}`}
+        {isProcessing ? "Processing..." : `Score Leads${leadsToScore.length > 0 ? ` (${leadsToScore.length})` : ''}`}
       </span>
       {isProcessing && (
         <div className="absolute right-2 top-1/2 -translate-y-1/2">
@@ -209,6 +229,17 @@ function FilterSwitch({ checked, onCheckedChange }: { checked: boolean; onChecke
       </Label>
     </div>
   )
+}
+
+// Update the parsing function to trim whitespace
+function parseQualificationReason(reason: string | null, type: 'target' | 'icp'): string {
+  if (!reason) return 'No qualification data';
+  
+  const sections = reason.split('\n\n');
+  const targetSection = sections[0]?.replace('Target Assessment:\n', '').trim();
+  const icpSection = sections[1]?.replace('ICP Assessment:\n', '').trim();
+  
+  return type === 'target' ? targetSection : icpSection;
 }
 
 interface LeadsTableProps {
@@ -388,45 +419,58 @@ export default function LeadsTable({ leads }: LeadsTableProps) {
                     <div className="flex items-center gap-2">
                       <div className="flex flex-col gap-1">
                         <div className="text-xs text-muted-foreground">Target</div>
-                        <Badge 
-                          variant={lead.isTarget === targetStatusEnum.enumValues[0] ? "success" : // "YES"
-                                  lead.isTarget === targetStatusEnum.enumValues[1] ? "destructive" : "outline"} // "NO"
-                          className="w-20 justify-center"
-                        >
-                          {lead.isTarget}
-                        </Badge>
+                        <TooltipProvider delayDuration={0}>
+                          <Tooltip>
+                            <TooltipTrigger>
+                              <Badge 
+                                variant={lead.isTarget === targetStatusEnum.enumValues[0] ? "success" : // "YES"
+                                        lead.isTarget === targetStatusEnum.enumValues[1] ? "destructive" : "outline"} // "NO"
+                                className="w-20 justify-center"
+                              >
+                                {lead.isTarget}
+                              </Badge>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <div className="max-w-[300px] whitespace-pre-wrap">
+                                {parseQualificationReason(lead.qualificationReason, 'target')}
+                              </div>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
                       </div>
 
                       <div className="flex flex-col gap-1">
                         <div className="text-xs text-muted-foreground">ICP</div>
-                        <Badge 
-                          variant={lead.icpFit === icpFitStatusEnum.enumValues[0] ? "success" : // "YES"
-                                  lead.icpFit === icpFitStatusEnum.enumValues[1] ? "destructive" : "outline"} // "NO"
-                          className="w-20 justify-center"
-                        >
-                          {lead.icpFit}
-                        </Badge>
+                        <TooltipProvider delayDuration={0}>
+                          <Tooltip>
+                            <TooltipTrigger>
+                              <Badge 
+                                variant={lead.icpFit === icpFitStatusEnum.enumValues[0] ? "success" : // "YES"
+                                        lead.icpFit === icpFitStatusEnum.enumValues[1] ? "destructive" : "outline"} // "NO"
+                                className="w-20 justify-center"
+                              >
+                                {lead.icpFit}
+                              </Badge>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <div className="max-w-[300px] whitespace-pre-wrap">
+                                {parseQualificationReason(lead.qualificationReason, 'icp')}
+                              </div>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
                       </div>
                     </div>
-
-                    {lead.qualificationReason && (
-                      <div className="flex flex-col gap-1">
-                        <div className="text-xs text-muted-foreground">Qualification</div>
-                        <div className="text-sm bg-muted p-2 rounded-md max-w-[300px] whitespace-pre-wrap">
-                          {lead.qualificationReason}
-                        </div>
-                      </div>
-                    )}
                   </div>
                 </TableCell>
 
                 <TableCell className="align-top">
                   <div className="flex gap-1">
-                    {lead.hasBusinessCard && (
+                    {lead.hasBusinessCard && lead.rawBusinessCard && (
                       <TooltipProvider delayDuration={0}>
                         <Tooltip>
                           <TooltipTrigger>
-                            <Badge variant="secondary">📸</Badge>
+                            <Badge variant="secondary" className="h-7 px-3">📸</Badge>
                           </TooltipTrigger>
                           <TooltipContent>
                             <div className="max-w-[300px] whitespace-pre-wrap">
@@ -436,11 +480,11 @@ export default function LeadsTable({ leads }: LeadsTableProps) {
                         </Tooltip>
                       </TooltipProvider>
                     )}
-                    {lead.hasTextNote && (
+                    {lead.hasTextNote && lead.rawTextNote && (
                       <TooltipProvider delayDuration={0}>
                         <Tooltip>
                           <TooltipTrigger>
-                            <Badge variant="secondary">📝</Badge>
+                            <Badge variant="secondary" className="h-7 px-3">📝</Badge>
                           </TooltipTrigger>
                           <TooltipContent>
                             <div className="max-w-[300px] whitespace-pre-wrap">
@@ -450,15 +494,29 @@ export default function LeadsTable({ leads }: LeadsTableProps) {
                         </Tooltip>
                       </TooltipProvider>
                     )}
-                    {lead.hasVoiceMemo && (
+                    {lead.hasVoiceMemo && lead.rawVoiceMemo && (
                       <TooltipProvider delayDuration={0}>
                         <Tooltip>
                           <TooltipTrigger>
-                            <Badge variant="secondary">🎤</Badge>
+                            <Badge variant="secondary" className="h-7 px-3">🎤</Badge>
                           </TooltipTrigger>
                           <TooltipContent>
                             <div className="max-w-[300px] whitespace-pre-wrap">
                               {lead.rawVoiceMemo}
+                            </div>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    )}
+                    {lead.referral && (
+                      <TooltipProvider delayDuration={0}>
+                        <Tooltip>
+                          <TooltipTrigger>
+                            <Badge variant="secondary" className="h-7 px-3">👥</Badge>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <div className="max-w-[300px] whitespace-pre-wrap">
+                              Referred Lead
                             </div>
                           </TooltipContent>
                         </Tooltip>

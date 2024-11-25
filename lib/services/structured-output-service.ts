@@ -13,9 +13,12 @@ export interface StructuredOutputResponse<T> {
 }
 
 export class StructuredOutputService {
-  static async structureText<T>(
-    text: string, 
-    schema: z.ZodSchema, 
+  /**
+   * Generic method to structure data using OpenAI
+   */
+  static async process<T>(
+    input: string,
+    schema: z.ZodSchema,
     prompt: string,
     modelName: string = "gpt-4o-mini"
   ): Promise<StructuredOutputResponse<T>> {
@@ -29,7 +32,7 @@ export class StructuredOutputService {
           },
           {
             role: "user",
-            content: text
+            content: input
           }
         ],
         response_format: zodResponseFormat(schema, "data")
@@ -48,7 +51,7 @@ export class StructuredOutputService {
         success: true,
         data: {
           ...parsedData,
-          rawText: text
+          rawInput: input
         } as T
       };
 
@@ -59,5 +62,15 @@ export class StructuredOutputService {
         error: error instanceof Error ? error.message : 'Failed to structure data'
       };
     }
+  }
+
+  // Keep for backward compatibility
+  static async structureText<T>(
+    text: string,
+    schema: z.ZodSchema,
+    prompt: string,
+    modelName: string = "gpt-4o-mini"
+  ): Promise<StructuredOutputResponse<T>> {
+    return this.process<T>(text, schema, prompt, modelName);
   }
 } 
