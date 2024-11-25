@@ -14,7 +14,7 @@ import { getCompanyProfile } from './company-profile-actions'
 
 export async function extractBusinessCard(text: string): Promise<StructuredOutputResponse> {
   try {
-    console.log('Tesseract Raw Output:', text)
+    // console.log('Tesseract Raw Output:', text)  // Commented out
     
     // Get company profile data
     const companyProfile = await getCompanyProfile()

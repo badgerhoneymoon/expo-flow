@@ -9,6 +9,7 @@ import { extractBusinessCard } from '@/actions/extract-business-card'
 import { OCRService } from '@/lib/services/ocr-service'
 import { processVoiceMemo } from '@/actions/process-voice-memo'
 import { processTextNotes } from '@/actions/process-text-notes'
+import { RainbowButton } from "@/components/ui/rainbow-button"
 
 interface FileUpload {
   file: File
@@ -205,31 +206,28 @@ export default function UploadForm() {
         </div>
 
         {files.length > 0 && (
-          <div className="space-y-4">
+          <div className="space-y-4 max-w-lg mx-auto">
             {files.map((file, index) => (
               <div key={index} className="space-y-2">
                 <div className="flex justify-between text-sm">
                   <span>{file.file.name}</span>
                   <span>{file.progress}%</span>
                 </div>
-                <Progress value={file.progress} />
-                {file.result && (
-                  <div className="mt-2 p-2 bg-gray-50 rounded text-sm whitespace-pre-wrap">
-                    {file.result}
-                  </div>
-                )}
+                <Progress value={file.progress} className="h-2" />
               </div>
             ))}
           </div>
         )}
 
-        <Button 
-          className="w-full" 
-          onClick={processFiles}
-          disabled={isProcessing || files.length === 0}
-        >
-          {isProcessing ? 'Processing...' : 'Process Data'}
-        </Button>
+        <div className="flex justify-center">
+          <RainbowButton 
+            className="w-48" 
+            onClick={processFiles}
+            disabled={isProcessing || files.length === 0}
+          >
+            {isProcessing ? 'Processing...' : 'Process Data'}
+          </RainbowButton>
+        </div>
       </CardContent>
     </Card>
   )

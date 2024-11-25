@@ -37,7 +37,7 @@ export async function processVoiceMemo(audioData: FormData): Promise<StructuredO
       }
     }
 
-    console.log('Whisper Transcription:', text)
+    // console.log('Whisper Transcription:', text)  // Commented out
     const prompt = getStructuredOutputPrompt(
       new Date().toISOString().split('T')[0],
       companyProfile.targetJobTitles,

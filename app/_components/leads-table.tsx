@@ -307,7 +307,7 @@ export default function LeadsTable({ leads }: LeadsTableProps) {
                       </div>
                     )}
                     {lead.referral && (
-                      <Badge variant="secondary">
+                      <Badge variant="purple" className="whitespace-nowrap">
                         Referred Lead
                       </Badge>
                     )}

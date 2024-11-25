@@ -14,7 +14,7 @@ import { getCompanyProfile } from './company-profile-actions'
 
 export async function processTextNotes(text: string): Promise<StructuredOutputResponse> {
   try {
-    console.log('Text Notes Input:', text)
+    // console.log('Text Notes Input:', text)  // Commented out
     
     // Get company profile data
     const companyProfile = await getCompanyProfile()
