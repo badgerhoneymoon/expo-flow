@@ -4,12 +4,14 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
-import { ImagePlus, FileText, Mic } from 'lucide-react'
+import { ImagePlus, FileText, Mic, Check } from 'lucide-react'
 import { extractBusinessCard } from '@/actions/extract-business-card'
 import { OCRService } from '@/lib/services/ocr-service'
 import { processVoiceMemo } from '@/actions/process-voice-memo'
 import { processTextNotes } from '@/actions/process-text-notes'
 import { RainbowButton } from "@/components/ui/rainbow-button"
+import { cn } from "@/lib/utils"
+import { motion } from 'framer-motion'
 
 interface FileUpload {
   file: File
@@ -209,11 +211,34 @@ export default function UploadForm() {
           <div className="space-y-4 max-w-lg mx-auto">
             {files.map((file, index) => (
               <div key={index} className="space-y-2">
-                <div className="flex justify-between text-sm">
+                <div className="flex justify-between text-sm items-center">
                   <span>{file.file.name}</span>
-                  <span>{file.progress}%</span>
+                  <div className="flex items-center gap-2">
+                    <span>{file.progress}%</span>
+                    {file.progress === 100 && (
+                      <motion.div
+                        initial={{ scale: 0, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        transition={{
+                          type: "spring",
+                          stiffness: 300,
+                          damping: 20
+                        }}
+                      >
+                        <Check className="h-4 w-4 text-green-500" />
+                      </motion.div>
+                    )}
+                  </div>
                 </div>
-                <Progress value={file.progress} className="h-2" />
+                <Progress 
+                  value={file.progress} 
+                  className={cn(
+                    "h-2 transition-colors duration-300",
+                    file.progress === 100 ? "bg-green-100" : "bg-secondary",
+                    "[&>div]:transition-all [&>div]:duration-300",
+                    file.progress === 100 && "[&>div]:bg-green-500"
+                  )} 
+                />
               </div>
             ))}
           </div>

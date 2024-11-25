@@ -19,47 +19,38 @@ import {
 import { TargetStatus, ICPFitStatus } from "@/types/structured-output-types"
 import { Badge } from "@/components/ui/badge"
 import { motion } from "framer-motion"
-import { FileText, Mail, Linkedin, Globe, Calendar, Phone } from "lucide-react"
+import { Mail, Linkedin, Globe, Calendar } from "lucide-react"
 import { findMissingWebsites } from "@/actions/leads-actions"
 import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
 import { useState } from "react"
-
-// Helper component for long text content
-function LongTextCell({ content }: { content: string | null }) {
-  if (!content || content === "N/A") return <span className="text-muted-foreground">—</span>
-
-  return (
-    <TooltipProvider delayDuration={0}>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <div className="max-w-[200px] truncate">
-            {content}
-          </div>
-        </TooltipTrigger>
-        <TooltipContent side="right" className="max-w-[400px] whitespace-pre-wrap">
-          {content}
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
-  )
-}
+import { cn } from "@/lib/utils"
 
 // Modified LinkCell component to handle emails specially
 function LinkCell({ url, icon: Icon, isEmail = false }: { url: string | null, icon: any, isEmail?: boolean }) {
   if (!url || url === "N/A") return <span className="text-muted-foreground">—</span>
 
+  // Function to clean URL for display
+  const cleanUrl = (url: string) => {
+    try {
+      const urlObj = new URL(url.startsWith('http') ? url : `https://${url}`)
+      return urlObj.hostname.replace(/^www\./, '')
+    } catch {
+      return url
+    }
+  }
+
   return (
     <a 
-      href={isEmail ? undefined : url} // Don't use href for emails
-      onClick={isEmail ? (e) => e.preventDefault() : undefined} // Prevent default for emails
+      href={isEmail ? undefined : url}
+      onClick={isEmail ? (e) => e.preventDefault() : undefined}
       target={isEmail ? undefined : "_blank"} 
       rel={isEmail ? undefined : "noopener noreferrer"} 
       className="text-blue-600 hover:text-blue-800 hover:underline inline-flex items-center gap-1"
     >
       <Icon className="h-4 w-4" />
       <span className="max-w-[150px] truncate">
-        {isEmail ? url : url}
+        {isEmail ? url : cleanUrl(url)}
       </span>
     </a>
   )
@@ -98,10 +89,27 @@ function FindWebsitesButton() {
       size="sm"
       onClick={handleClick}
       disabled={isProcessing}
-      className="gap-2"
+      className={cn(
+        "relative gap-2",
+        isProcessing && "pr-8",
+        "hover:border-blue-500/50 hover:bg-blue-500/10 hover:text-blue-500",
+        "active:scale-95 transition-transform duration-75"
+      )}
     >
-      <Globe className="h-4 w-4" />
-      {isProcessing ? "Processing..." : "Find Missing Websites"}
+      <Globe 
+        className={cn(
+          "h-4 w-4",
+          isProcessing && "text-muted-foreground animate-pulse"
+        )} 
+      />
+      <span className={isProcessing ? "text-muted-foreground" : ""}>
+        {isProcessing ? "Processing..." : "Find Missing Websites"}
+      </span>
+      {isProcessing && (
+        <div className="absolute right-2 top-1/2 -translate-y-1/2">
+          <div className="h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" />
+        </div>
+      )}
     </Button>
   )
 }
