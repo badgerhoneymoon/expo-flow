@@ -106,19 +106,26 @@ export async function createLead(structuredOutput: StructuredOutput) {
         firstName: structuredOutput.referralData.firstName,
         lastName: structuredOutput.referralData.lastName,
         jobTitle: structuredOutput.referralData.position,
+        // Inherit company information
         company: sourceLeadWithEnrichedData.company || undefined,
         website: sourceLeadWithEnrichedData.website || undefined,
         companyIndustry: sourceLeadWithEnrichedData.companyIndustry || undefined,
         companySize: sourceLeadWithEnrichedData.companySize || undefined,
         companyBusiness: sourceLeadWithEnrichedData.companyBusiness || undefined,
         mainInterest: sourceLeadWithEnrichedData.mainInterest || undefined,
+        // Inherit raw data for company context
+        rawBusinessCard: sourceLeadWithEnrichedData.rawBusinessCard || undefined,
+        rawTextNote: sourceLeadWithEnrichedData.rawTextNote || undefined,
+        rawVoiceMemo: sourceLeadWithEnrichedData.rawVoiceMemo || undefined,
+        // Referral specific fields
         nextSteps: "Follow up with referred contact",
         notes: `Referred by ${sourceLeadWithEnrichedData.firstName || ''} ${sourceLeadWithEnrichedData.lastName || ''}`,
         contactTiming: structuredOutput.referralData.contactTiming,
         contactDate: structuredOutput.referralData.contactDate,
-        hasBusinessCard: structuredOutput.hasBusinessCard,
-        hasTextNote: structuredOutput.hasTextNote,
-        hasVoiceMemo: structuredOutput.hasVoiceMemo,
+        // Source tracking stays false since we haven't directly collected this data
+        hasBusinessCard: false,
+        hasTextNote: false,
+        hasVoiceMemo: false,
         referral: true
       }
 

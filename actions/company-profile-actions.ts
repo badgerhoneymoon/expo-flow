@@ -8,8 +8,32 @@ export async function getCompanyProfile() {
     website: "blinkcharging.com",
     description: "Leading provider of EV charging stations and networks. We design, manufacture, and operate charging infrastructure for electric vehicles.",
     minimumDealSize: "50k-100k",
-    targetMarkets: "Hotels, Multi-Unit Residential, Commercial Real Estate, Retail, Municipalities",
+    targetMarkets: "Hotels, Multi-Unit Residential, Commercial Real Estate, Retail, Municipalities, State Government Departments, Energy & Climate Change Offices, Transport Authorities, Local Councils",
     targetJobTitles: "Facility Manager, Property Manager, Sustainability Manager, Operations Manager",
-    icpDescription: "Commercial properties with multiple parking spaces, high-traffic locations, or multi-unit residential buildings. Looking for locations with significant dwell time and EV adoption in the area. Must have budget for enterprise-level charging infrastructure."
+    icpDescription: `Our ideal customers fall into two main categories:
+
+1. Commercial & Real Estate Sector:
+- Property management companies and real estate developers
+- Commercial properties with parking facilities (any size)
+- Multi-unit residential buildings
+- Retail locations and shopping centers
+- Hotels and hospitality venues
+- Office buildings and business parks
+Key indicators: Properties with regular tenant/visitor parking needs, interest in sustainability or tenant amenities
+
+2. Public Sector:
+- Government departments and agencies
+- Municipalities and local councils
+- Transport authorities
+Key indicators: Focus on sustainable transport, climate initiatives, or public infrastructure
+
+Qualifying Factors (any of these):
+- Properties with dedicated parking spaces
+- Locations with medium to high dwell time
+- Areas with growing EV adoption
+- Interest in sustainability initiatives
+- Looking to add tenant/visitor amenities
+- Planning infrastructure improvements
+- Budget available for property improvements`,
   }
 } 

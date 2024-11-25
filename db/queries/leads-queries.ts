@@ -39,8 +39,7 @@ export async function findLeadByNameAndCompany(
       .where(
         and(
           eq(leads.firstName, firstName),
-          eq(leads.lastName, lastName),
-          eq(leads.company, company)
+          eq(leads.lastName, lastName)
         )
       )
     return lead

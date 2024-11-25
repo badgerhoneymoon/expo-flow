@@ -149,7 +149,9 @@ function ScoreButton({ leads }: { leads: Lead[] }) {
   // Count leads that need scoring (those with UNKNOWN status)
   const leadsToScore = leads.filter(lead => 
     lead.isTarget === targetStatusEnum.enumValues[2] || // "UNKNOWN"
-    lead.icpFit === icpFitStatusEnum.enumValues[2] // "UNKNOWN"
+    lead.isTarget === null ||
+    lead.icpFit === icpFitStatusEnum.enumValues[2] || // "UNKNOWN"
+    lead.icpFit === null
   )
 
   const handleClick = async () => {

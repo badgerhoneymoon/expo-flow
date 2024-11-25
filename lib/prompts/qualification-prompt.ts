@@ -15,6 +15,9 @@ export const getQualificationPrompt = (
     companyIndustry?: string;
     companySize?: string;
     companyBusiness?: string;
+    rawBusinessCard?: string;
+    rawTextNote?: string;
+    rawVoiceMemo?: string;
   }
 ) => `
 Analyze the lead against company's target criteria. Use ONLY the provided data for comparison.
@@ -23,15 +26,18 @@ Company Profile:
 - Target Job Titles: ${companyProfile.targetJobTitles}
 - Target Markets: ${companyProfile.targetMarkets}
 - ICP Description: ${companyProfile.icpDescription}
-- Minimum Deal Size: ${companyProfile.minimumDealSize}
 
 Lead Information:
 - Job Title: ${leadData.jobTitle || 'N/A'}
 - Main Interest: ${leadData.mainInterest || 'N/A'}
 - Company Industry: ${leadData.companyIndustry || 'N/A'}
-- Company Size: ${leadData.companySize || 'N/A'}
 - Company Business: ${leadData.companyBusiness || 'N/A'}
 - Additional Notes: ${leadData.notes || 'N/A'}
+
+Raw Data Sources:
+- Business Card Data: ${leadData.rawBusinessCard || 'N/A'}
+- Text Notes: ${leadData.rawTextNote || 'N/A'}
+- Voice Memo Transcript: ${leadData.rawVoiceMemo || 'N/A'}
 
 Rules for Qualification:
 
@@ -45,7 +51,6 @@ Rules for Qualification:
      * Position is junior version of target role (e.g., "Assistant" or "Junior")
    - UNKNOWN if:
      * Job title is missing or unclear
-     * Can't determine seniority level
 
    Provide targetReason that includes:
    * Exact comparison with target job titles
@@ -56,20 +61,18 @@ Rules for Qualification:
    Compare these lead fields against ICP Description and Target Markets:
    - Main Interest
    - Company Industry
-   - Company Size
    - Company Business
    - Additional Notes
+   - Raw Data Sources (Business Card, Text Notes, Voice Memo)
 
    - YES if:
      * Multiple strong matches with ICP description
      * Company characteristics align with target markets
      * Business needs match our solution scope
-     * Deal size potential meets minimum (if indicated)
    - NO if:
      * Clear misalignment with ICP description
      * Company characteristics don't match target markets
      * Business needs outside our solution scope
-     * Deal size clearly below minimum
    - UNKNOWN if:
      * Insufficient information in provided fields
      * Contradictory information
@@ -82,6 +85,7 @@ Rules for Qualification:
    * Decision rationale with scoring (0-100)
 
 IMPORTANT:
+- Consider all raw data sources when evaluating both target status and ICP fit
 - Only use provided data fields
 - No assumptions about missing information
 - Default to UNKNOWN if critical data is missing
