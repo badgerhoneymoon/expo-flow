@@ -1,6 +1,10 @@
 "use server"
 
-import { ActionState } from "@/types/actions-types"
+interface ActionState<T> {
+  isSuccess: boolean
+  message: string
+  data?: T
+}
 
 export async function saveVoiceMemo(blob: Blob): Promise<ActionState<string>> {
   try {

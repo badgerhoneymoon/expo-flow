@@ -2,16 +2,30 @@
 
 import { useReactMediaRecorder } from "react-media-recorder"
 import { Button } from "@/components/ui/button"
-import { useState } from "react"
-import { Mic, Square, Upload, Loader2 } from "lucide-react"
-import { saveVoiceMemo } from "@/actions/voice-memo-actions"
-import { toast } from "sonner"
+import { useState, useRef, useEffect } from "react"
+import { Mic, Square, FileAudio, Clock, Gauge } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { cn } from "@/lib/utils"
 
+interface RecordingStats {
+  size: number
+  duration: number
+  bitrate: number
+}
+
 export default function VoiceRecorder() {
-  const [isUploading, setIsUploading] = useState(false)
-  const [savedRecordings, setSavedRecordings] = useState<string[]>([])
+  const [stats, setStats] = useState<RecordingStats | null>(null)
+  const [timer, setTimer] = useState(0)
+  const timerRef = useRef<NodeJS.Timeout | null>(null)
+  const startTimeRef = useRef<number | null>(null)
+  
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current)
+      }
+    }
+  }, [])
   
   const {
     status,
@@ -20,32 +34,50 @@ export default function VoiceRecorder() {
     mediaBlobUrl,
   } = useReactMediaRecorder({
     audio: true,
-    blobPropertyBag: { type: "audio/mp3" },
+    blobPropertyBag: { type: "audio/webm;codecs=opus" },
+    mediaRecorderOptions: {
+      mimeType: "audio/webm;codecs=opus",
+      audioBitsPerSecond: 24000,
+    },
+    onStart: () => {
+      startTimeRef.current = Date.now()
+      setStats(null)
+      setTimer(0)
+      timerRef.current = setInterval(() => {
+        setTimer(t => t + 1)
+      }, 1000)
+    },
+    onStop: async (blobUrl) => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current)
+      }
+      
+      if (blobUrl && startTimeRef.current) {
+        const response = await fetch(blobUrl)
+        const blob = await response.blob()
+        const duration = (Date.now() - startTimeRef.current) / 1000
+        const size = blob.size
+        const bitrate = (size * 8) / (duration * 1000)
+
+        setStats({
+          size,
+          duration,
+          bitrate
+        })
+      }
+    }
   })
 
-  const handleSave = async () => {
-    if (!mediaBlobUrl) return
-    
-    setIsUploading(true)
-    try {
-      const response = await fetch(mediaBlobUrl)
-      const blob = await response.blob()
-      
-      const result = await saveVoiceMemo(blob)
-      
-      if (result.isSuccess && result.data) {
-        const audioData: string = result.data
-        setSavedRecordings(prev => [...prev, audioData])
-        toast.success("Recording saved successfully")
-      } else {
-        toast.error(result.message)
-      }
-    } catch (error) {
-      console.error("Failed to save recording:", error)
-      toast.error("Failed to save recording")
-    } finally {
-      setIsUploading(false)
-    }
+  const formatFileSize = (bytes: number): string => {
+    if (bytes < 1024) return `${bytes} B`
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+  }
+
+  const formatDuration = (seconds: number): string => {
+    const mins = Math.floor(seconds / 60)
+    const secs = Math.floor(seconds % 60)
+    return `${mins}:${secs.toString().padStart(2, '0')}`
   }
 
   const isRecording = status === "recording"
@@ -53,132 +85,133 @@ export default function VoiceRecorder() {
   return (
     <div className="space-y-8">
       <motion.div 
-        className="relative flex flex-col items-center gap-6 p-8 rounded-xl bg-white/50 dark:bg-gray-950/50 border shadow-xl backdrop-blur-sm"
-        initial={{ scale: 0.95, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ duration: 0.3 }}
+        layout
+        className={cn(
+          "relative flex flex-col items-center p-8 rounded-xl bg-white/50 dark:bg-gray-950/50 border shadow-xl backdrop-blur-sm",
+          "transition-all duration-500 ease-in-out",
+          isRecording ? "min-h-[240px]" : "min-h-[160px]"
+        )}
       >
-        <motion.div 
-          className="relative"
-          animate={isRecording ? {
-            scale: [1, 1.1, 1],
-            transition: { 
-              repeat: Infinity, 
-              duration: 2,
-              ease: "easeInOut"
-            }
-          } : {}}
-        >
-          {/* Animated rings */}
-          {isRecording && (
-            <>
-              <motion.div 
-                className="absolute inset-0 rounded-full border-4 border-red-500/50 pointer-events-none"
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 2, opacity: 0 }}
-                transition={{ 
-                  repeat: Infinity, 
-                  duration: 2,
-                  ease: "easeOut"
-                }}
-              />
-              <motion.div 
-                className="absolute inset-0 rounded-full border-4 border-red-500/30 pointer-events-none"
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 2, opacity: 0 }}
-                transition={{ 
-                  repeat: Infinity, 
-                  duration: 2,
-                  ease: "easeOut",
-                  delay: 0.5
-                }}
-              />
-            </>
-          )}
-
-          {/* Main button */}
-          <div className={cn(
-            "p-8 rounded-full transition-colors duration-200",
-            isRecording ? "bg-red-100 dark:bg-red-900/30" : "bg-indigo-100 dark:bg-indigo-900/30"
-          )}>
-            <Button 
-              size="lg"
-              variant={isRecording ? "destructive" : "default"}
-              className={cn(
-                "h-16 w-16 rounded-full transition-transform duration-200 hover:scale-105",
-                isRecording && "animate-pulse"
-              )}
-              onClick={() => isRecording ? stopRecording() : startRecording()}
-              disabled={status === "acquiring_media"}
-            >
-              {isRecording ? (
-                <Square className="w-6 h-6" />
-              ) : (
-                <Mic className="w-6 h-6" />
-              )}
-            </Button>
-          </div>
-        </motion.div>
-
-        <AnimatePresence mode="wait">
-          {mediaBlobUrl && (
-            <motion.div 
-              className="w-full space-y-4"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-            >
-              <div className="p-4 rounded-lg bg-white dark:bg-gray-900 shadow-sm border">
-                <audio src={mediaBlobUrl} controls className="w-full" />
-              </div>
-              
-              <Button
-                variant="outline"
-                onClick={handleSave}
-                disabled={isUploading}
-                className="w-full h-12 hover:scale-[1.02] transition-transform duration-200"
-              >
-                {isUploading ? (
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                ) : (
-                  <Upload className="w-4 h-4 mr-2" />
-                )}
-                {isUploading ? "Saving..." : "Save Recording"}
-              </Button>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </motion.div>
-
-      <AnimatePresence>
-        {savedRecordings.length > 0 && (
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="space-y-4"
-          >
-            <h3 className="text-lg font-semibold text-center">Saved Recordings</h3>
-            <div className="space-y-4">
-              {savedRecordings.map((base64Audio, index) => (
+        <motion.div layout className="relative w-full flex flex-col items-center">
+          <motion.div layout>
+            <div className={cn(
+              "relative p-8 rounded-full transition-colors duration-500",
+              isRecording 
+                ? "bg-red-100 dark:bg-red-900/30" 
+                : "bg-indigo-100 dark:bg-indigo-900/30"
+            )}>
+              {isRecording && (
                 <motion.div
-                  key={index}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  className="p-4 rounded-lg bg-white/50 dark:bg-gray-900/50 shadow-sm border backdrop-blur-sm hover:shadow-md transition-shadow duration-200"
+                  className="absolute inset-0 rounded-full bg-red-400/25 dark:bg-red-400/20"
+                  animate={{
+                    scale: [1, 1.25],
+                  }}
+                  transition={{
+                    duration: 1.5,
+                    repeat: Infinity,
+                    repeatType: "reverse",
+                    ease: "easeInOut"
+                  }}
+                />
+              )}
+              
+              <Button 
+                size="lg"
+                variant={isRecording ? "destructive" : "default"}
+                className={cn(
+                  "h-16 w-16 rounded-full transition-all duration-300 hover:scale-105 relative z-10",
+                  !isRecording && "bg-indigo-500 hover:bg-indigo-600 text-white"
+                )}
+                onClick={() => isRecording ? stopRecording() : startRecording()}
+              >
+                {isRecording ? (
+                  <Square className="w-6 h-6" />
+                ) : (
+                  <Mic className="w-6 h-6" />
+                )}
+              </Button>
+            </div>
+          </motion.div>
+
+          <motion.div 
+            layout
+            className="overflow-hidden"
+            animate={{ 
+              height: isRecording ? "5rem" : "0rem",
+              marginTop: isRecording ? "1rem" : "0rem"
+            }}
+            transition={{ duration: 0.3 }}
+          >
+            <AnimatePresence mode="wait">
+              {isRecording && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 10 }}
+                  className="flex flex-col items-center"
                 >
+                  <motion.div
+                    className="text-3xl font-mono text-red-500/90 dark:text-red-400/90"
+                    animate={{ scale: [1, 1.02, 1] }}
+                    transition={{ 
+                      repeat: Infinity, 
+                      duration: 2,
+                      ease: "easeInOut"
+                    }}
+                  >
+                    {Math.floor(timer / 60).toString().padStart(2, '0')}:{(timer % 60).toString().padStart(2, '0')}
+                  </motion.div>
+                  <motion.div 
+                    className="text-sm text-muted-foreground/70 mt-1"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.2 }}
+                  >
+                    Recording
+                  </motion.div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
+
+          <AnimatePresence mode="wait">
+            {stats && (
+              <motion.div 
+                layout
+                className="w-full mt-4"
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                <div className="flex justify-center items-center gap-3 text-sm text-muted-foreground/80">
+                  <div className="flex items-center gap-1.5">
+                    <FileAudio className="w-3.5 h-3.5 opacity-70" />
+                    <span>{formatFileSize(stats.size)}</span>
+                  </div>
+                  <span className="opacity-50">•</span>
+                  <div className="flex items-center gap-1.5">
+                    <Clock className="w-3.5 h-3.5 opacity-70" />
+                    <span>{formatDuration(stats.duration)}</span>
+                  </div>
+                  <span className="opacity-50">•</span>
+                  <div className="flex items-center gap-1.5">
+                    <Gauge className="w-3.5 h-3.5 opacity-70" />
+                    <span>{stats.bitrate.toFixed(1)} kbps</span>
+                  </div>
+                </div>
+                <div className="mt-4 p-4 rounded-lg bg-white dark:bg-gray-900 shadow-sm border">
                   <audio 
-                    src={`data:audio/mp3;base64,${base64Audio}`}
+                    src={mediaBlobUrl} 
                     controls 
                     className="w-full"
                   />
-                </motion.div>
-              ))}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
+      </motion.div>
     </div>
   )
 } 
