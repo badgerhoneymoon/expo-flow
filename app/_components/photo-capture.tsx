@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Camera, Upload, X } from "lucide-react"
+import { Upload, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { motion, AnimatePresence } from "framer-motion"
 import { cn } from "@/lib/utils"
@@ -17,18 +17,6 @@ export default function PhotoCapture() {
         setPhoto(reader.result as string)
       }
       reader.readAsDataURL(file)
-    }
-  }
-
-  const handleCameraClick = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true })
-      // For now, just log that we got camera access
-      console.log("Camera access granted", stream)
-      // We'll implement actual camera capture later
-      stream.getTracks().forEach(track => track.stop())
-    } catch (error) {
-      console.error("Camera access failed:", error)
     }
   }
 
@@ -70,18 +58,10 @@ export default function PhotoCapture() {
             >
               <div className="text-center">
                 <p className="text-sm text-muted-foreground">
-                  Upload or take a photo of the business card
+                  Take a photo or upload a business card
                 </p>
               </div>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  className="gap-2"
-                  onClick={handleCameraClick}
-                >
-                  <Camera className="w-4 h-4" />
-                  Take Photo
-                </Button>
+              <div>
                 <label className="cursor-pointer">
                   <input
                     type="file"
@@ -96,7 +76,7 @@ export default function PhotoCapture() {
                   >
                     <span>
                       <Upload className="w-4 h-4" />
-                      Upload
+                      Add Photo
                     </span>
                   </Button>
                 </label>

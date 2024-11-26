@@ -21,11 +21,11 @@ export default function VoiceMemosPage() {
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold">
             <span className="bg-gradient-to-r from-indigo-500 to-purple-600 text-transparent bg-clip-text">
-              Voice Memos
+              Lead Capture
             </span>
           </h1>
           <p className="text-muted-foreground mt-2">
-            Capture your thoughts with crystal clear audio
+            Capture trade show leads with business cards and quick voice notes
           </p>
         </div>
         
