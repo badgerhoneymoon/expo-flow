@@ -2,6 +2,7 @@
 
 import dynamic from 'next/dynamic'
 import { motion } from "framer-motion"
+import PhotoCapture from "@/app/_components/photo-capture"
 
 // Dynamically import VoiceRecorder with no SSR
 const VoiceRecorder = dynamic(
@@ -28,13 +29,10 @@ export default function VoiceMemosPage() {
           </p>
         </div>
         
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-        >
+        <div className="space-y-8">
+          <PhotoCapture />
           <VoiceRecorder />
-        </motion.div>
+        </div>
       </motion.div>
     </div>
   )
