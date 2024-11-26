@@ -44,7 +44,7 @@ export default function RootLayout({
                 href="/voice-memos" 
                 className="text-sm font-medium hover:text-primary"
               >
-                Voice Memos
+                Lead Capture
               </Link>
             </div>
           </div>

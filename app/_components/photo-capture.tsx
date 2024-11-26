@@ -1,13 +1,25 @@
 "use client"
 
 import { useState } from "react"
-import { Upload, X, Camera } from "lucide-react"
+import { X, Camera, FileImage } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { motion, AnimatePresence } from "framer-motion"
+import { motion } from "framer-motion"
 import { cn } from "@/lib/utils"
+
+interface PhotoStats {
+  size: number
+  name: string
+}
 
 export default function PhotoCapture() {
   const [photo, setPhoto] = useState<string | null>(null)
+  const [stats, setStats] = useState<PhotoStats | null>(null)
+
+  const formatFileSize = (bytes: number): string => {
+    if (bytes < 1024) return `${bytes} B`
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+  }
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -15,9 +27,18 @@ export default function PhotoCapture() {
       const reader = new FileReader()
       reader.onloadend = () => {
         setPhoto(reader.result as string)
+        setStats({
+          size: file.size,
+          name: file.name
+        })
       }
       reader.readAsDataURL(file)
     }
+  }
+
+  const handleReset = () => {
+    setPhoto(null)
+    setStats(null)
   }
 
   return (
@@ -30,7 +51,7 @@ export default function PhotoCapture() {
           photo ? "min-h-[240px]" : "min-h-[160px]"
         )}
       >
-        <motion.div layout className="relative w-full flex flex-col items-center">
+        <div className="relative w-full flex flex-col items-center">
           {!photo ? (
             <label className="cursor-pointer">
               <input
@@ -60,10 +81,24 @@ export default function PhotoCapture() {
             </label>
           ) : (
             <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="w-full"
+              className="w-full space-y-2"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ 
+                duration: 0.9,
+                ease: [0.16, 1, 0.3, 1],
+                opacity: { duration: 1 },
+                y: { duration: 1.1 }
+              }}
             >
+              {stats && (
+                <div className="flex justify-center items-center gap-3 text-sm text-muted-foreground/80 mb-2">
+                  <div className="flex items-center gap-1.5">
+                    <FileImage className="w-3.5 h-3.5 opacity-70" />
+                    <span>{formatFileSize(stats.size)}</span>
+                  </div>
+                </div>
+              )}
               <div className="relative rounded-lg overflow-hidden">
                 <img 
                   src={photo} 
@@ -74,14 +109,14 @@ export default function PhotoCapture() {
                   size="icon"
                   variant="secondary"
                   className="absolute top-2 right-2"
-                  onClick={() => setPhoto(null)}
+                  onClick={handleReset}
                 >
                   <X className="w-4 h-4" />
                 </Button>
               </div>
             </motion.div>
           )}
-        </motion.div>
+        </div>
       </motion.div>
     </div>
   )
