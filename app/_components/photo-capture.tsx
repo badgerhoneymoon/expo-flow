@@ -11,7 +11,11 @@ interface PhotoStats {
   name: string
 }
 
-export default function PhotoCapture() {
+interface PhotoCaptureProps {
+  onCapture: (file: File | null) => void
+}
+
+export default function PhotoCapture({ onCapture }: PhotoCaptureProps) {
   const [photo, setPhoto] = useState<string | null>(null)
   const [stats, setStats] = useState<PhotoStats | null>(null)
 
@@ -31,6 +35,7 @@ export default function PhotoCapture() {
           size: file.size,
           name: file.name
         })
+        onCapture(file)
       }
       reader.readAsDataURL(file)
     }
@@ -39,6 +44,7 @@ export default function PhotoCapture() {
   const handleReset = () => {
     setPhoto(null)
     setStats(null)
+    onCapture(null)
   }
 
   return (

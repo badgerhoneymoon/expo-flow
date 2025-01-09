@@ -13,7 +13,11 @@ interface RecordingStats {
   bitrate: number
 }
 
-export default function VoiceRecorder() {
+interface VoiceRecorderProps {
+  onCapture: (blob: Blob | null) => void
+}
+
+export default function VoiceRecorder({ onCapture }: VoiceRecorderProps) {
   const [isRecording, setIsRecording] = useState(false)
   const [stats, setStats] = useState<RecordingStats | null>(null)
   const [timer, setTimer] = useState(0)
@@ -46,6 +50,7 @@ export default function VoiceRecorder() {
               duration,
               bitrate: (blob.size * 8) / (duration * 1000)
             })
+            onCapture(blob)
           }
 
           chunksRef.current = []
@@ -87,6 +92,7 @@ export default function VoiceRecorder() {
       setIsRecording(true)
       setAudioUrl(null)
       setStats(null)
+      onCapture(null)
     }
   }
 
