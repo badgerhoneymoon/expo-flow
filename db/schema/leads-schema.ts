@@ -58,6 +58,10 @@ export const leads = pgTable("leads", {
   rawBusinessCard: text("raw_business_card"),
   rawTextNote: text("raw_text_note"),
   rawVoiceMemo: text("raw_voice_memo"),
+
+  // Storage Paths
+  businessCardPath: text("business_card_path"),
+  voiceMemoPath: text("voice_memo_path"),
 })
 
 export type Lead = typeof leads.$inferSelect

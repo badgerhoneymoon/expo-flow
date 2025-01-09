@@ -8,6 +8,7 @@ import { useState } from "react"
 import { Upload, Loader2 } from "lucide-react"
 import { toast } from "sonner"
 import { uploadBusinessCard, uploadVoiceMemo } from "@/lib/storage/storage-client"
+import { createCapturedLead } from "@/actions/capture-lead-actions"
 
 // Dynamically import VoiceRecorder with no SSR
 const VoiceRecorder = dynamic(
@@ -33,6 +34,7 @@ export default function VoiceMemosPage() {
     setIsUploading(true)
     try {
       const uploads = []
+      const paths: { businessCardPath?: string, voiceMemoPath?: string } = {}
 
       if (capturedFiles.businessCard) {
         uploads.push(uploadBusinessCard(capturedFiles.businessCard))
@@ -41,8 +43,25 @@ export default function VoiceMemosPage() {
         uploads.push(uploadVoiceMemo(capturedFiles.voiceMemo))
       }
 
-      const paths = await Promise.all(uploads)
-      toast.success('Files uploaded successfully')
+      const uploadedPaths = await Promise.all(uploads)
+      
+      // Map paths to their respective types
+      if (capturedFiles.businessCard) {
+        paths.businessCardPath = uploadedPaths[0]
+      }
+      if (capturedFiles.voiceMemo && !capturedFiles.businessCard) {
+        paths.voiceMemoPath = uploadedPaths[0]
+      } else if (capturedFiles.voiceMemo) {
+        paths.voiceMemoPath = uploadedPaths[1]
+      }
+
+      // Create lead record
+      const result = await createCapturedLead(paths)
+      if (!result.success) {
+        throw new Error(result.error)
+      }
+
+      toast.success('Lead created successfully')
       
       // Reset captures after successful upload
       setCapturedFiles({})

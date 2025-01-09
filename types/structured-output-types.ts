@@ -52,6 +52,8 @@ export type StructuredOutput = z.infer<typeof StructuredOutputSchema> & {
   rawBusinessCard?: string
   rawTextNote?: string
   rawVoiceMemo?: string
+  businessCardPath?: string
+  voiceMemoPath?: string
 }
 
 export interface StructuredOutputResponse {
