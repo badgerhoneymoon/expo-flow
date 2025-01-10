@@ -5,10 +5,13 @@ import * as queries from "@/db/queries/leads-queries"
 import { StructuredOutput } from "@/types/structured-output-types"
 import { targetStatusEnum, icpFitStatusEnum } from "@/db/schema/leads-schema"
 
-export async function createCapturedLead(paths: {
+interface CaptureLeadInput {
   businessCardPath?: string
   voiceMemoPath?: string
-}) {
+  rawTextNote?: string
+}
+
+export async function createCapturedLead(input: CaptureLeadInput) {
   try {
     // Create a minimal lead record for the captured files
     const leadData: StructuredOutput = {
@@ -16,10 +19,12 @@ export async function createCapturedLead(paths: {
       lastName: "N/A",
       nextSteps: "Process captured files",
       notes: "Lead created from captured files",
-      hasBusinessCard: !!paths.businessCardPath,
-      hasVoiceMemo: !!paths.voiceMemoPath,
-      businessCardPath: paths.businessCardPath,
-      voiceMemoPath: paths.voiceMemoPath
+      hasBusinessCard: !!input.businessCardPath,
+      hasVoiceMemo: !!input.voiceMemoPath,
+      hasTextNote: !!input.rawTextNote,
+      businessCardPath: input.businessCardPath,
+      voiceMemoPath: input.voiceMemoPath,
+      rawTextNote: input.rawTextNote
     }
 
     // Create new lead with default qualification values

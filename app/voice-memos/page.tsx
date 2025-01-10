@@ -4,6 +4,7 @@ import dynamic from 'next/dynamic'
 import { motion } from "framer-motion"
 import PhotoCapture from "@/app/_components/photo-capture"
 import { Button } from "@/components/ui/button"
+import { Textarea } from "@/components/ui/textarea"
 import { useState } from "react"
 import { Upload, Loader2 } from "lucide-react"
 import { toast } from "sonner"
@@ -19,15 +20,17 @@ const VoiceRecorder = dynamic(
 interface CapturedFiles {
   businessCard?: File | null
   voiceMemo?: Blob | null
+  textNotes?: string
 }
 
 export default function VoiceMemosPage() {
   const [capturedFiles, setCapturedFiles] = useState<CapturedFiles>({})
   const [isUploading, setIsUploading] = useState(false)
+  const [key, setKey] = useState(0)
 
   const handleUpload = async () => {
-    if (!capturedFiles.businessCard && !capturedFiles.voiceMemo) {
-      toast.error('Please capture at least one file first')
+    if (!capturedFiles.businessCard && !capturedFiles.voiceMemo && !capturedFiles.textNotes) {
+      toast.error('Please capture at least one type of information')
       return
     }
 
@@ -56,15 +59,21 @@ export default function VoiceMemosPage() {
       }
 
       // Create lead record
-      const result = await createCapturedLead(paths)
+      const result = await createCapturedLead({
+        ...paths,
+        rawTextNote: capturedFiles.textNotes
+      })
       if (!result.success) {
         throw new Error(result.error)
       }
 
       toast.success('Lead created successfully')
       
-      // Reset captures after successful upload
+      // Reset all captures after successful upload
       setCapturedFiles({})
+      
+      // Force a re-render of components by key change
+      setKey(prev => prev + 1)
     } catch (error) {
       console.error('Upload error:', error)
       toast.error('Failed to upload files')
@@ -93,11 +102,26 @@ export default function VoiceMemosPage() {
         
         <div className="space-y-8">
           <PhotoCapture 
+            key={`photo-${key}`}
             onCapture={(file) => setCapturedFiles(prev => ({ ...prev, businessCard: file }))} 
           />
           <VoiceRecorder 
+            key={`voice-${key}`}
             onCapture={(blob) => setCapturedFiles(prev => ({ ...prev, voiceMemo: blob }))} 
           />
+          
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-muted-foreground">
+              Additional Notes
+            </label>
+            <Textarea
+              key={`notes-${key}`}
+              placeholder="Add any additional notes about the lead..."
+              className="min-h-[100px] resize-y"
+              value={capturedFiles.textNotes || ''}
+              onChange={(e) => setCapturedFiles(prev => ({ ...prev, textNotes: e.target.value }))}
+            />
+          </div>
           
           <motion.div
             initial={{ opacity: 0 }}
@@ -107,7 +131,7 @@ export default function VoiceMemosPage() {
             <Button 
               className="w-full h-14 text-lg"
               onClick={handleUpload}
-              disabled={!capturedFiles.businessCard && !capturedFiles.voiceMemo || isUploading}
+              disabled={!capturedFiles.businessCard && !capturedFiles.voiceMemo && !capturedFiles.textNotes || isUploading}
             >
               {isUploading ? (
                 <>
@@ -117,7 +141,7 @@ export default function VoiceMemosPage() {
               ) : (
                 <>
                   <Upload className="w-5 h-5 mr-2" />
-                  Upload {Object.keys(capturedFiles).filter(key => capturedFiles[key as keyof CapturedFiles]).length} file{Object.keys(capturedFiles).filter(key => capturedFiles[key as keyof CapturedFiles]).length !== 1 ? 's' : ''}
+                  Save Lead Information
                 </>
               )}
             </Button>
