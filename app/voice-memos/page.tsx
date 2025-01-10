@@ -3,13 +3,16 @@
 import dynamic from 'next/dynamic'
 import { motion } from "framer-motion"
 import PhotoCapture from "@/app/_components/photo-capture"
+import LeadsList from "@/app/_components/leads-list"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Upload, Loader2 } from "lucide-react"
 import { toast } from "sonner"
 import { uploadBusinessCard, uploadVoiceMemo } from "@/lib/storage/storage-client"
 import { createCapturedLead } from "@/actions/capture-lead-actions"
+import { getLeads } from "@/actions/leads-actions"
+import type { Lead } from "@/db/schema/leads-schema"
 
 // Dynamically import VoiceRecorder with no SSR
 const VoiceRecorder = dynamic(
@@ -27,6 +30,19 @@ export default function VoiceMemosPage() {
   const [capturedFiles, setCapturedFiles] = useState<CapturedFiles>({})
   const [isUploading, setIsUploading] = useState(false)
   const [key, setKey] = useState(0)
+  const [leads, setLeads] = useState<Lead[]>([])
+
+  // Fetch leads on mount and after successful upload
+  const fetchLeads = async () => {
+    const result = await getLeads()
+    if (result.success) {
+      setLeads(result.data || [])
+    }
+  }
+
+  useEffect(() => {
+    fetchLeads()
+  }, [])
 
   const handleUpload = async () => {
     if (!capturedFiles.businessCard && !capturedFiles.voiceMemo && !capturedFiles.textNotes) {
@@ -71,9 +87,10 @@ export default function VoiceMemosPage() {
       
       // Reset all captures after successful upload
       setCapturedFiles({})
-      
-      // Force a re-render of components by key change
       setKey(prev => prev + 1)
+      
+      // Refresh leads list
+      fetchLeads()
     } catch (error) {
       console.error('Upload error:', error)
       toast.error('Failed to upload files')
@@ -141,11 +158,18 @@ export default function VoiceMemosPage() {
               ) : (
                 <>
                   <Upload className="w-5 h-5 mr-2" />
-                  Save Lead Information
+                  Create New Lead
                 </>
               )}
             </Button>
           </motion.div>
+
+          {leads.length > 0 && (
+            <div className="pt-8 border-t">
+              <h2 className="text-lg font-semibold mb-4">Captured Leads</h2>
+              <LeadsList leads={leads} />
+            </div>
+          )}
         </div>
       </motion.div>
     </div>
