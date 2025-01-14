@@ -3,11 +3,12 @@
 import { eq, and, or, sql } from "drizzle-orm"
 import { db } from "@/db/db"
 import { leads } from "@/db/schema"
-import type { Lead, NewLead } from "@/db/schema"
+import type { Lead, NewLead, ReferralData } from "@/db/schema"
 
 export async function getLeads(): Promise<Lead[]> {
   try {
-    return await db.select().from(leads)
+    const results = await db.select().from(leads)
+    return results.map(lead => ({ ...lead, referrals: (lead.referrals || []) as ReferralData[] }))
   } catch (error) {
     console.error("Error getting leads:", error)
     throw new Error("Failed to get leads")
@@ -16,11 +17,12 @@ export async function getLeads(): Promise<Lead[]> {
 
 export async function getLead(id: string): Promise<Lead | undefined> {
   try {
-    const [lead] = await db
+    const [result] = await db
       .select()
       .from(leads)
       .where(eq(leads.id, id))
-    return lead
+    
+    return result ? { ...result, referrals: (result.referrals || []) as ReferralData[] } : undefined
   } catch (error) {
     console.error("Error getting lead:", error)
     throw new Error("Failed to get lead")
@@ -33,7 +35,7 @@ export async function findLeadByNameAndCompany(
   company: string
 ): Promise<Lead | undefined> {
   try {
-    const [lead] = await db
+    const [result] = await db
       .select()
       .from(leads)
       .where(
@@ -42,7 +44,8 @@ export async function findLeadByNameAndCompany(
           eq(leads.lastName, lastName)
         )
       )
-    return lead
+    
+    return result ? { ...result, referrals: (result.referrals || []) as ReferralData[] } : undefined
   } catch (error) {
     console.error("Error finding lead:", error)
     throw new Error("Failed to find lead")
@@ -55,7 +58,7 @@ export async function createLead(lead: NewLead): Promise<Lead> {
       .insert(leads)
       .values(lead)
       .returning()
-    return newLead
+    return { ...newLead, referrals: (newLead.referrals || []) as ReferralData[] }
   } catch (error) {
     console.error("Error creating lead:", error)
     throw new Error("Failed to create lead")
@@ -73,7 +76,7 @@ export async function updateLead(id: string, lead: Partial<NewLead>): Promise<Le
       .returning()
     
     console.log(`[DB Update] Update result:`, updatedLead);
-    return updatedLead;
+    return { ...updatedLead, referrals: (updatedLead.referrals || []) as ReferralData[] };
   } catch (error) {
     console.error("[DB Update] Error updating lead:", error);
     throw new Error("Failed to update lead");
@@ -86,15 +89,15 @@ export async function deleteLead(id: string): Promise<Lead> {
       .delete(leads)
       .where(eq(leads.id, id))
       .returning()
-    return deletedLead
+    return { ...deletedLead, referrals: (deletedLead.referrals || []) as ReferralData[] }
   } catch (error) {
     console.error("Error deleting lead:", error)
     throw new Error("Failed to delete lead")
   }
 }
 
-export async function getLeadsWithoutWebsites() {
-  return await db
+export async function getLeadsWithoutWebsites(): Promise<Lead[]> {
+  const results = await db
     .select()
     .from(leads)
     .where(
@@ -104,6 +107,7 @@ export async function getLeadsWithoutWebsites() {
         sql`${leads.website} IS NULL`
       )
     )
+  return results.map(lead => ({ ...lead, referrals: (lead.referrals || []) as ReferralData[] }))
 }
 
 export async function updateLeadLinkedIn(id: string, linkedin: string): Promise<Lead> {
@@ -120,7 +124,7 @@ export async function updateLeadLinkedIn(id: string, linkedin: string): Promise<
       .returning()
     
     console.log(`[DB Update] LinkedIn update result:`, updatedLead);
-    return updatedLead;
+    return { ...updatedLead, referrals: (updatedLead.referrals || []) as ReferralData[] };
   } catch (error) {
     console.error("[DB Update] Error updating lead LinkedIn:", error);
     throw new Error("Failed to update lead LinkedIn");
