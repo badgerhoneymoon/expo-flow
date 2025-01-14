@@ -44,7 +44,7 @@ export async function generateFollowUps(inputLeads: Lead[]) {
             mainInterest: lead.mainInterest,
             notes: lead.notes,
             eventName: lead.eventName,
-            referral: lead.referral ?? false // Provide default false if null
+            referral: lead.referrals && lead.referrals.length > 0 // true if has referrals
           }
 
           const result = await StructuredOutputService.process<FollowUpResponse>(
