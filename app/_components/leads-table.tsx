@@ -32,6 +32,7 @@ import { useRouter } from "next/navigation"
 import { mockEnrichLinkedInProfiles } from "@/lib/services/mock-linkedin-service"
 import { updateLeadsLinkedIn } from "@/actions/leads-actions"
 import { generateFollowUps } from "@/actions/follow-up-actions"
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 
 // Modified LinkCell component to handle emails specially
 function LinkCell({ url, icon: Icon, isEmail = false }: { url: string | null, icon: any, isEmail?: boolean }) {
@@ -699,7 +700,7 @@ export default function LeadsTable({ leads }: LeadsTableProps) {
                         </Tooltip>
                       </TooltipProvider>
                     )}
-                    {lead.referral && (
+                    {lead.referrals && lead.referrals.length > 0 && (
                       <TooltipProvider delayDuration={0}>
                         <Tooltip>
                           <TooltipTrigger>
@@ -707,7 +708,7 @@ export default function LeadsTable({ leads }: LeadsTableProps) {
                           </TooltipTrigger>
                           <TooltipContent>
                             <div className="max-w-[300px] whitespace-pre-wrap">
-                              Referred Lead
+                              Has {lead.referrals.length} referral{lead.referrals.length > 1 ? 's' : ''}
                             </div>
                           </TooltipContent>
                         </Tooltip>
@@ -754,10 +755,45 @@ export default function LeadsTable({ leads }: LeadsTableProps) {
                         </div>
                       </div>
                     )}
-                    {lead.referral && (
-                      <Badge variant="purple" className="whitespace-nowrap">
-                        Referred Lead
-                      </Badge>
+                    {lead.referrals && lead.referrals.length > 0 && (
+                      <div className="flex flex-col gap-1">
+                        <div className="text-xs text-muted-foreground">Referrals</div>
+                        <Accordion type="single" collapsible className="w-full">
+                          {lead.referrals.map((referral, index) => (
+                            <AccordionItem key={index} value={`referral-${index}`} className="border-0">
+                              <AccordionTrigger className="py-0 hover:no-underline">
+                                <Badge variant="purple" className="whitespace-nowrap cursor-pointer hover:bg-purple-600">
+                                  {referral.firstName} {referral.lastName}
+                                </Badge>
+                              </AccordionTrigger>
+                              <AccordionContent className="pb-2">
+                                <div className="pl-2 pt-2 space-y-1 text-sm">
+                                  {referral.position && (
+                                    <div className="text-muted-foreground">
+                                      Position: {referral.position}
+                                    </div>
+                                  )}
+                                  {referral.contactTiming && (
+                                    <div className="text-muted-foreground">
+                                      When: {referral.contactTiming}
+                                    </div>
+                                  )}
+                                  {referral.contactDate && (
+                                    <div className="text-muted-foreground">
+                                      Date: {referral.contactDate}
+                                    </div>
+                                  )}
+                                  {referral.notes && (
+                                    <div className="bg-muted/50 p-2 rounded-md mt-2">
+                                      {referral.notes}
+                                    </div>
+                                  )}
+                                </div>
+                              </AccordionContent>
+                            </AccordionItem>
+                          ))}
+                        </Accordion>
+                      </div>
                     )}
                   </div>
                 </TableCell>

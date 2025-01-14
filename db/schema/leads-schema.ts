@@ -1,8 +1,18 @@
-import { pgTable, text, timestamp, boolean, uuid, pgEnum } from "drizzle-orm/pg-core"
+import { pgTable, text, timestamp, boolean, uuid, pgEnum, jsonb } from "drizzle-orm/pg-core"
 
 // Create Postgres enums with explicit values
 export const targetStatusEnum = pgEnum('target_status', ['YES', 'NO', 'UNKNOWN'] as const)
 export const icpFitStatusEnum = pgEnum('icp_fit_status', ['YES', 'NO', 'UNKNOWN'] as const)
+
+// Add type for referral data
+export interface ReferralData {
+  firstName: string
+  lastName: string
+  position?: string
+  contactTiming?: string
+  contactDate?: string
+  notes?: string
+}
 
 export const leads = pgTable("leads", {
   // Core Identification (handled by Supabase)
@@ -41,8 +51,8 @@ export const leads = pgTable("leads", {
   companySize: text("company_size"),
   companyBusiness: text("company_business"),
 
-  // Referral Info
-  referral: boolean("referral").default(false),
+  // Referrals stored as JSONB array
+  referrals: jsonb("referrals").default([]),
   
   // Qualification Info
   isTarget: targetStatusEnum("is_target").default('UNKNOWN'),
@@ -64,5 +74,9 @@ export const leads = pgTable("leads", {
   voiceMemoPath: text("voice_memo_path"),
 })
 
-export type Lead = typeof leads.$inferSelect
-export type NewLead = typeof leads.$inferInsert
+export type Lead = typeof leads.$inferSelect & {
+  referrals: ReferralData[]
+}
+export type NewLead = typeof leads.$inferInsert & {
+  referrals: ReferralData[]
+}

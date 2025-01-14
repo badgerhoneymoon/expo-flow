@@ -7,7 +7,6 @@ import {
 } from '@/types/structured-output-types'
 import { StructuredOutputService } from '@/lib/services/structured-output-service'
 import { getStructuredOutputPrompt } from '@/lib/prompts/structured-output-prompt'
-import { createLead } from './leads-actions'
 
 function preprocessOCRText(text: string): string {
   return text
@@ -40,12 +39,7 @@ export async function extractBusinessCard(text: string): Promise<StructuredOutpu
         rawBusinessCard: text,
         rawTextNote: undefined,
         rawVoiceMemo: undefined,
-        referral: result.data.referral ?? false
-      }
-
-      const dbResult = await createLead(enrichedData)
-      if (!dbResult.success) {
-        throw new Error(dbResult.error)
+        referrals: result.data.referrals || []
       }
 
       return {

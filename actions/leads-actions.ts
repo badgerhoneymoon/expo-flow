@@ -61,7 +61,7 @@ export async function createLead(structuredOutput: StructuredOutput) {
         contactTiming: structuredOutput.contactTiming === "N/A" ? existingLead.contactTiming : (structuredOutput.contactTiming || existingLead.contactTiming),
         contactDate: structuredOutput.contactDate === "N/A" ? existingLead.contactDate : (structuredOutput.contactDate || existingLead.contactDate),
         followUpTemplate: structuredOutput.followUpTemplate === "N/A" ? existingLead.followUpTemplate : (structuredOutput.followUpTemplate || existingLead.followUpTemplate),
-        
+
         // Source tracking flags don't need N/A handling as they're booleans
         hasBusinessCard: structuredOutput.hasBusinessCard || existingLead.hasBusinessCard,
         hasTextNote: structuredOutput.hasTextNote || existingLead.hasTextNote,
@@ -77,8 +77,16 @@ export async function createLead(structuredOutput: StructuredOutput) {
         icpFit: existingLead.icpFit,
         qualificationReason: existingLead.qualificationReason,
         
-        // Boolean fields don't need N/A handling
-        referral: structuredOutput.referral || existingLead.referral,
+        // Merge referrals - combine existing and new, removing duplicates
+        referrals: [
+          ...(existingLead.referrals || []),
+          ...(structuredOutput.referrals || [])
+        ].filter((referral, index, self) => 
+          index === self.findIndex(r => 
+            r.firstName === referral.firstName && 
+            r.lastName === referral.lastName
+          )
+        )
       }
       
       updatedOrNewLead = await queries.updateLead(existingLead.id, updatedData)
@@ -91,53 +99,6 @@ export async function createLead(structuredOutput: StructuredOutput) {
         qualificationReason: null
       }
       updatedOrNewLead = await queries.createLead(newLeadData)
-    }
-
-    // Handle referral if present
-    if (structuredOutput.referral && structuredOutput.referralData) {
-      // Get the most up-to-date company information from the database
-      const sourceLeadWithEnrichedData = await queries.getLead(updatedOrNewLead.id)
-      if (!sourceLeadWithEnrichedData) {
-        throw new Error("Failed to fetch updated lead data")
-      }
-
-      // Create a new lead for the referral using the enriched company data
-      const referralLead: StructuredOutput = {
-        firstName: structuredOutput.referralData.firstName,
-        lastName: structuredOutput.referralData.lastName,
-        jobTitle: structuredOutput.referralData.position,
-        // Inherit company information
-        company: sourceLeadWithEnrichedData.company || undefined,
-        website: sourceLeadWithEnrichedData.website || undefined,
-        companyIndustry: sourceLeadWithEnrichedData.companyIndustry || undefined,
-        companySize: sourceLeadWithEnrichedData.companySize || undefined,
-        companyBusiness: sourceLeadWithEnrichedData.companyBusiness || undefined,
-        mainInterest: sourceLeadWithEnrichedData.mainInterest || undefined,
-        // Inherit raw data for company context
-        rawBusinessCard: sourceLeadWithEnrichedData.rawBusinessCard || undefined,
-        rawTextNote: sourceLeadWithEnrichedData.rawTextNote || undefined,
-        rawVoiceMemo: sourceLeadWithEnrichedData.rawVoiceMemo || undefined,
-        // Referral specific fields
-        nextSteps: "Follow up with referred contact",
-        notes: `Referred by ${sourceLeadWithEnrichedData.firstName || ''} ${sourceLeadWithEnrichedData.lastName || ''}`,
-        contactTiming: structuredOutput.referralData.contactTiming,
-        contactDate: structuredOutput.referralData.contactDate,
-        // Source tracking stays false since we haven't directly collected this data
-        hasBusinessCard: false,
-        hasTextNote: false,
-        hasVoiceMemo: false,
-        referral: true
-      }
-
-      // Create the referred lead
-      await createLead(referralLead)
-
-      // Update the source lead to referral: false since they did the referring
-      const updatedSourceData = {
-        ...updatedOrNewLead,
-        referral: false
-      }
-      updatedOrNewLead = await queries.updateLead(updatedOrNewLead.id, updatedSourceData)
     }
 
     revalidatePath("/leads")
@@ -156,7 +117,7 @@ export async function updateLead(id: string, structuredOutput: Partial<Structure
     const updateData = {
       ...structuredOutputToNewLead({
         ...structuredOutput,
-        referral: structuredOutput.referral ?? existingLead.referral
+        referrals: structuredOutput.referrals ?? existingLead.referrals
       } as StructuredOutput)
     }
     

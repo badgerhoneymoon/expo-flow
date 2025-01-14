@@ -7,7 +7,6 @@ import {
 } from '@/types/structured-output-types'
 import { StructuredOutputService } from "@/lib/services/structured-output-service"
 import { getStructuredOutputPrompt } from '@/lib/prompts/structured-output-prompt'
-import { createLead } from './leads-actions'
 
 export async function processTextNotes(text: string): Promise<StructuredOutputResponse> {
   try {
@@ -37,14 +36,8 @@ export async function processTextNotes(text: string): Promise<StructuredOutputRe
         rawBusinessCard: undefined,
         rawTextNote: text,
         rawVoiceMemo: undefined,
-        // Required boolean with default
-        referral: result.data.referral ?? false
-      }
-
-      // Save to database
-      const dbResult = await createLead(enrichedData)
-      if (!dbResult.success) {
-        throw new Error(dbResult.error)
+        // Ensure referrals array exists
+        referrals: result.data.referrals || []
       }
 
       return {

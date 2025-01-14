@@ -67,26 +67,40 @@ IMPORTANT: If any information is unclear, ambiguous, or not explicitly mentioned
      * Use current year unless next year explicitly stated
 
 5. Referral Handling:
-   - Set referral to true ONLY if another person to contact is explicitly mentioned
-   - referralData should ONLY be included when referral is true
-   - When (and only when) referral is true, capture in referralData:
+   - Include an array of referrals in the output
+   - For each person mentioned as a potential contact, include:
      * First Name & Last Name (REQUIRED):
        - Follow same name rules as above
        - If only partial name mentioned, use "N/A" for missing part
      * Position (if mentioned)
      * Contact Timing (when to reach out)
      * Contact Date (specific date if mentioned)
+     * Notes (any specific context about this referral)
    
-   Example timing for referred people:
-   - "Sarah will be back from vacation on January 15th" -> referralData.contactDate: "2024-01-15"
-   - "Better reach out to Mike next week" -> referralData.contactTiming: "next week"
+   Example outputs:
+   For "Sarah will be back from vacation on January 15th":
+   [{
+     firstName: "Sarah",
+     lastName: "N/A",
+     contactDate: "2024-01-15"
+   }]
+   
+   For "Better reach out to Mike Smith next week":
+   [{
+     firstName: "Mike",
+     lastName: "Smith",
+     contactTiming: "next week"
+   }]
+   
+   For no referrals mentioned:
+   []
    
    Important:
-   - ONLY include referralData when referral is true
-   - If no referral is mentioned, set referral: false and omit referralData completely
-   - When included, referralData must have at least firstName and lastName
+   - Only include people explicitly mentioned as potential contacts
+   - Each referral must have firstName and lastName
    - Only capture information about the referred person
    - Only include timing that relates to when to contact the referred person
+   - Always include the referrals array, even if empty
 
 Remember:
 - Today's date is ${currentDate}
@@ -95,9 +109,9 @@ Remember:
 - Use exact phrases where possible
 - Cross-validate information across all mentions
 - Fix common OCR errors and misspellings
-- Only create referral data when someone else is explicitly mentioned as a contact
+- Only include people explicitly mentioned as contacts in referrals
 - Inherit company context from the main lead
 - Keep referral data minimal and focused
 - Use exact phrases for timing and positions
 - Format dates as YYYY-MM-DD
-- Don't guess or assume information about the referral` 
+- Don't guess or assume information about referrals` 

@@ -14,10 +14,9 @@ import { createCapturedLead } from "@/actions/capture-lead-actions"
 import { getLeads } from "@/actions/leads-actions"
 import type { Lead } from "@/db/schema/leads-schema"
 import { OCRService } from '@/lib/services/ocr-service'
-import { extractBusinessCard } from '@/actions/extract-business-card'
-import { processVoiceMemo } from '@/actions/process-voice-memo'
-import { processTextNotes } from '@/actions/process-text-notes'
 import type { StructuredOutput } from '@/types/structured-output-types'
+import { processStructuredData } from "@/actions/process-structured-data"
+import { transcribeVoiceMemo } from "@/actions/process-voice-memo"
 
 // Dynamically import VoiceRecorder with no SSR
 const VoiceRecorder = dynamic(
@@ -60,90 +59,96 @@ export default function VoiceMemosPage() {
     try {
       let businessCardPath: string | undefined
       let voiceMemoPath: string | undefined
-      let structuredData: StructuredOutput = {
-        firstName: "N/A",
-        lastName: "N/A",
-        nextSteps: "Process captured files",
-        notes: "Lead created from captured files",
-        hasBusinessCard: false,
-        hasTextNote: false,
-        hasVoiceMemo: false
-      }
+      let combinedContext = ''
 
-      // Upload business card if exists
+      // First, collect all raw text
+      // 1. Business Card OCR
       if (capturedFiles.businessCard) {
         try {
           businessCardPath = await uploadBusinessCard(capturedFiles.businessCard)
           const ocrResult = await OCRService.performOCR(capturedFiles.businessCard)
           if (ocrResult.success && ocrResult.text) {
-            const response = await extractBusinessCard(ocrResult.text)
-            if (response.success && response.data) {
-              structuredData = {
-                ...structuredData,
-                ...response.data,
-                hasBusinessCard: true,
-                businessCardPath,
-                rawBusinessCard: ocrResult.text
-              }
-            }
+            combinedContext += `BUSINESS CARD:\n${ocrResult.text}\n\n`
           }
         } catch (error) {
           console.error('Error processing business card:', error)
         }
       }
 
-      // Upload voice memo if exists
+      // 2. Voice Memo Transcription
       if (capturedFiles.voiceMemo) {
         try {
+          console.log('Starting voice memo processing')
+          
           voiceMemoPath = await uploadVoiceMemo(capturedFiles.voiceMemo)
+          console.log('Voice memo uploaded:', voiceMemoPath)
+          
+          // Convert Blob to File and create FormData
+          const audioFile = new File([capturedFiles.voiceMemo], 'voice-memo.mp3', { type: 'audio/mp3' })
           const formData = new FormData()
-          formData.append('file', capturedFiles.voiceMemo)
-          const response = await processVoiceMemo(formData)
-          if (response.success && response.data) {
-            structuredData = {
-              ...structuredData,
-              ...response.data,
-              hasVoiceMemo: true,
-              voiceMemoPath,
-              rawVoiceMemo: response.data.rawVoiceMemo
-            }
+          formData.append('file', audioFile)
+          
+          const { success, text, error } = await transcribeVoiceMemo(formData)
+          console.log('Transcription result:', { success, text, error })
+          
+          if (success && text) {
+            combinedContext += `VOICE MEMO:\n${text}\n\n`
+            console.log('Updated combined context:', combinedContext)
+          } else {
+            console.error('Transcription failed:', error)
           }
         } catch (error) {
           console.error('Error processing voice memo:', error)
+          console.error('Error details:', {
+            name: error instanceof Error ? error.name : 'Unknown',
+            message: error instanceof Error ? error.message : String(error)
+          })
         }
       }
 
-      // Process text notes if exists
+      // 3. Text Notes
       if (capturedFiles.textNotes) {
-        try {
-          const response = await processTextNotes(capturedFiles.textNotes)
-          if (response.success && response.data) {
-            structuredData = {
-              ...structuredData,
-              ...response.data,
-              hasTextNote: true,
-              rawTextNote: capturedFiles.textNotes
-            }
-          }
-        } catch (error) {
-          console.error('Error processing text notes:', error)
-        }
+        combinedContext += `TEXT NOTES:\n${capturedFiles.textNotes}\n\n`
       }
 
-      // Create a single lead record with both storage paths and structured data
-      const result = await createCapturedLead({
+      // Now process all the text together
+      const result = await processStructuredData(combinedContext)
+
+      if (!result.success || !result.data) {
+        throw new Error(result.error || 'Failed to structure data')
+      }
+
+      // Create the structured data with source tracking
+      const structuredData: StructuredOutput = {
+        ...result.data,
+        hasBusinessCard: !!businessCardPath,
+        hasVoiceMemo: !!voiceMemoPath,
+        hasTextNote: !!capturedFiles.textNotes,
         businessCardPath,
         voiceMemoPath,
-        rawTextNote: capturedFiles.textNotes
+        // Store the full raw text sections
+        rawBusinessCard: combinedContext.includes('BUSINESS CARD:') ? 
+          combinedContext.split('BUSINESS CARD:\n')[1].split('\nVOICE MEMO:')[0].split('\nTEXT NOTES:')[0].trim() : undefined,
+        rawVoiceMemo: combinedContext.includes('VOICE MEMO:') ? 
+          combinedContext.split('VOICE MEMO:\n')[1].split('\nTEXT NOTES:')[0].trim() : undefined,
+        rawTextNote: capturedFiles.textNotes || undefined
+      }
+
+      // Create a single lead record
+      const createResult = await createCapturedLead({
+        businessCardPath,
+        voiceMemoPath,
+        rawTextNote: capturedFiles.textNotes,
+        structuredData
       })
       
-      if (!result.success) {
-        throw new Error(result.error)
+      if (!createResult.success) {
+        throw new Error(createResult.error)
       }
 
       toast.success('Lead created and processed successfully')
       
-      // Reset all captures after successful upload
+      // Reset all captures
       setCapturedFiles({})
       setKey(prev => prev + 1)
       

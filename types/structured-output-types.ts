@@ -1,12 +1,13 @@
 import { z } from "zod"
 
-// New schema for referrals
+// Schema for referrals
 export const ReferralSchema = z.object({
   firstName: z.string(),
   lastName: z.string(),
   position: z.string().optional(),
   contactTiming: z.string().optional(),
   contactDate: z.string().optional(),
+  notes: z.string().optional()
 })
 
 export type Referral = z.infer<typeof ReferralSchema>
@@ -35,8 +36,7 @@ export const StructuredOutputSchema = z.object({
   companyBusiness: z.string().optional(),
 
   // Referral Info
-  referral: z.boolean().optional(),
-  referralData: ReferralSchema.optional(),
+  referrals: z.array(ReferralSchema),
 
   // Follow-up
   contactTiming: z.string().optional(),

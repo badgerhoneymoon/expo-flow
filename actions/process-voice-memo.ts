@@ -8,7 +8,6 @@ import {
 import { WhisperService } from "@/lib/services/whisper-service"
 import { StructuredOutputService } from "@/lib/services/structured-output-service"
 import { getStructuredOutputPrompt } from '@/lib/prompts/structured-output-prompt'
-import { createLead } from './leads-actions'
 
 export async function processVoiceMemo(audioData: FormData): Promise<StructuredOutputResponse> {
   try {
@@ -57,14 +56,8 @@ export async function processVoiceMemo(audioData: FormData): Promise<StructuredO
         rawBusinessCard: undefined,
         rawTextNote: undefined,
         rawVoiceMemo: text,
-        // Required boolean with default
-        referral: result.data.referral ?? false
-      }
-
-      // Save to database
-      const dbResult = await createLead(enrichedData)
-      if (!dbResult.success) {
-        throw new Error(dbResult.error)
+        // Ensure referrals array exists
+        referrals: result.data.referrals || []
       }
 
       return {
@@ -83,6 +76,27 @@ export async function processVoiceMemo(audioData: FormData): Promise<StructuredO
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Failed to process voice memo'
+    }
+  }
+}
+
+export async function transcribeVoiceMemo(audioData: FormData) {
+  try {
+    const audioFile = audioData.get('file') as File
+    if (!audioFile) {
+      return {
+        success: false,
+        error: "No audio file provided"
+      }
+    }
+    
+    const result = await WhisperService.transcribeAudio(audioFile)
+    return result
+  } catch (error) {
+    console.error('Error transcribing voice memo:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to transcribe voice memo'
     }
   }
 } 

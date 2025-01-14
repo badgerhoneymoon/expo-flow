@@ -9,12 +9,13 @@ interface CaptureLeadInput {
   businessCardPath?: string
   voiceMemoPath?: string
   rawTextNote?: string
+  structuredData?: StructuredOutput
 }
 
 export async function createCapturedLead(input: CaptureLeadInput) {
   try {
-    // Create a minimal lead record for the captured files
-    const leadData: StructuredOutput = {
+    // Create a lead record with structured data if available, otherwise use minimal data
+    const leadData: StructuredOutput = input.structuredData || {
       firstName: "N/A",
       lastName: "N/A",
       nextSteps: "Process captured files",
@@ -24,7 +25,8 @@ export async function createCapturedLead(input: CaptureLeadInput) {
       hasTextNote: !!input.rawTextNote,
       businessCardPath: input.businessCardPath,
       voiceMemoPath: input.voiceMemoPath,
-      rawTextNote: input.rawTextNote
+      rawTextNote: input.rawTextNote,
+      referrals: []
     }
 
     // Create new lead with default qualification values
