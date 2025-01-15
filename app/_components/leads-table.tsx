@@ -3,14 +3,6 @@
 import { Lead } from "@/db/schema/leads-schema"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
-import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
@@ -434,373 +426,369 @@ function parseQualificationReason(reason: string | null, type: 'target' | 'icp')
 
 interface LeadsTableProps {
   leads: Lead[]
+  showActions?: boolean
+  showQualificationFilter?: boolean
+  showQualificationStats?: boolean
 }
 
-export default function LeadsTable({ leads }: LeadsTableProps) {
+export default function LeadsTable({ 
+  leads, 
+  showActions = true,
+  showQualificationFilter = true,
+  showQualificationStats = true 
+}: LeadsTableProps) {
   const [showQualifiedOnly, setShowQualifiedOnly] = useState(false)
+  const [expandedLead, setExpandedLead] = useState<string | undefined>(undefined)
   
   const filteredLeads = showQualifiedOnly 
     ? leads.filter(lead => 
-        lead.isTarget === targetStatusEnum.enumValues[0] && // "YES"
-        lead.icpFit === icpFitStatusEnum.enumValues[0] // "YES"
+        lead.isTarget === targetStatusEnum.enumValues[0] && 
+        lead.icpFit === icpFitStatusEnum.enumValues[0]
       )
     : leads
 
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
-        <div className="flex items-center gap-4">
+    <Card className="max-w-2xl mx-auto">
+      <CardHeader className="pb-0">
+        <div className="flex items-center justify-between">
           <CardTitle>Leads</CardTitle>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-col items-center">
+            <div className="text-xs text-muted-foreground">Total</div>
+            <Badge variant="outline" className="min-w-[3rem] justify-center text-base font-semibold">
+              {leads.length}
+            </Badge>
+          </div>
+        </div>
+
+        {showActions && (
+          <div className="flex flex-wrap items-center gap-2 mt-4">
             <FindWebsitesButton leads={leads} />
             <ScoreButton leads={leads} />
             <EnrichLinkedInButton leads={leads} />
             <CreateFollowUpsButton leads={leads} />
           </div>
-        </div>
-        <div className="flex items-center gap-6">
-          <FilterSwitch 
-            checked={showQualifiedOnly}
-            onCheckedChange={setShowQualifiedOnly}
-          />
-          <div className="flex items-center gap-4">
-            <div className="flex flex-col items-center gap-1">
-              <div className="text-xs text-muted-foreground">Total</div>
-              <Badge variant="outline" className="min-w-[3rem] justify-center text-base font-semibold">
-                {leads.length}
-              </Badge>
-            </div>
+        )}
 
-            <div className="flex flex-col items-center gap-1">
-              <div className="text-xs text-muted-foreground">Targets</div>
-              <Badge 
-                variant={leads.filter(l => l.isTarget === targetStatusEnum.enumValues[0]).length > 0 ? "success" : "outline"} // "YES"
-                className="min-w-[3rem] justify-center text-base font-semibold"
-              >
-                {leads.filter(l => l.isTarget === targetStatusEnum.enumValues[0]).length}
-              </Badge>
-            </div>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mt-4">
+          {showQualificationFilter && (
+            <FilterSwitch 
+              checked={showQualifiedOnly}
+              onCheckedChange={setShowQualifiedOnly}
+            />
+          )}
+          {showQualificationStats && (
+            <div className="flex items-center gap-4">
+              <div className="flex flex-col items-center gap-1">
+                <div className="text-xs text-muted-foreground">Targets</div>
+                <Badge 
+                  variant={leads.filter(l => l.isTarget === targetStatusEnum.enumValues[0]).length > 0 ? "success" : "outline"}
+                  className="min-w-[3rem] justify-center text-base font-semibold"
+                >
+                  {leads.filter(l => l.isTarget === targetStatusEnum.enumValues[0]).length}
+                </Badge>
+              </div>
 
-            <div className="flex flex-col items-center gap-1">
-              <div className="text-xs text-muted-foreground">ICP Fit</div>
-              <Badge 
-                variant={leads.filter(l => l.icpFit === icpFitStatusEnum.enumValues[0]).length > 0 ? "success" : "outline"} // "YES"
-                className="min-w-[3rem] justify-center text-base font-semibold"
-              >
-                {leads.filter(l => l.icpFit === icpFitStatusEnum.enumValues[0]).length}
-              </Badge>
+              <div className="flex flex-col items-center gap-1">
+                <div className="text-xs text-muted-foreground">ICP Fit</div>
+                <Badge 
+                  variant={leads.filter(l => l.icpFit === icpFitStatusEnum.enumValues[0]).length > 0 ? "success" : "outline"}
+                  className="min-w-[3rem] justify-center text-base font-semibold"
+                >
+                  {leads.filter(l => l.icpFit === icpFitStatusEnum.enumValues[0]).length}
+                </Badge>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </CardHeader>
-      <CardContent className="overflow-x-auto">
-        <Table>
-          <TableHeader>
-            <TableRow className="border-b-2 border-border hover:bg-transparent">
-              <TableHead className="font-semibold text-foreground">
-                <div className="flex flex-col gap-1">
-                  <span className="text-base">Basic Info</span>
-                  <span className="font-normal text-xs text-muted-foreground">Name & Position</span>
-                </div>
-              </TableHead>
-              <TableHead className="font-semibold text-foreground">
-                <div className="flex flex-col gap-1">
-                  <span className="text-base">Contact</span>
-                  <span className="font-normal text-xs text-muted-foreground">Email & LinkedIn</span>
-                </div>
-              </TableHead>
-              <TableHead className="font-semibold text-foreground">
-                <div className="flex flex-col gap-1">
-                  <span className="text-base">Company</span>
-                  <span className="font-normal text-xs text-muted-foreground">Name & Website</span>
-                </div>
-              </TableHead>
-              <TableHead className="font-semibold text-foreground">
-                <div className="flex flex-col gap-1">
-                  <span className="text-base">Qualification</span>
-                  <span className="font-normal text-xs text-muted-foreground">Target & ICP Status</span>
-                </div>
-              </TableHead>
-              <TableHead className="font-semibold text-foreground">
-                <div className="flex flex-col gap-1">
-                  <span className="text-base">Sources</span>
-                  <span className="font-normal text-xs text-muted-foreground">Data Origins</span>
-                </div>
-              </TableHead>
-              <TableHead className="font-semibold text-foreground">
-                <div className="flex flex-col gap-1">
-                  <span className="text-base">Follow-up</span>
-                  <span className="font-normal text-xs text-muted-foreground">Next Steps & Timing</span>
-                </div>
-              </TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredLeads.map((lead, index) => (
-              <motion.tr
-                key={lead.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: index * 0.1 }}
-                className="group hover:bg-muted/50 border-b border-border last:border-0"
+      <CardContent className="pt-4">
+        <div className="space-y-2">
+          {filteredLeads.map((lead, index) => (
+            <motion.div
+              key={lead.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: index * 0.1 }}
+              className="bg-card rounded-lg border shadow-sm"
+            >
+              <Accordion 
+                type="single" 
+                value={expandedLead} 
+                onValueChange={setExpandedLead} 
+                collapsible
               >
-                <TableCell className="align-top py-4">
-                  <div className="space-y-1">
-                    <div className="font-medium">
-                      {lead.firstName !== "N/A" && lead.lastName !== "N/A" ? 
-                        `${lead.firstName} ${lead.lastName}` : 
-                        <span className="text-muted-foreground">—</span>
-                      }
+                <AccordionItem value={lead.id} className="border-0">
+                  <AccordionTrigger className="px-4 py-2 hover:no-underline">
+                    <div className="text-left">
+                      <div className="font-medium">
+                        {lead.firstName !== "N/A" && lead.lastName !== "N/A" ? 
+                          `${lead.firstName} ${lead.lastName}` : 
+                          <span className="text-muted-foreground">—</span>
+                        }
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        {lead.jobTitle && lead.jobTitle !== "N/A" ? lead.jobTitle : '—'}
+                      </div>
                     </div>
-                    <div className="text-sm text-muted-foreground">
-                      {lead.jobTitle && lead.jobTitle !== "N/A" ? lead.jobTitle : '—'}
-                    </div>
-                  </div>
-                </TableCell>
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <div className="p-4 space-y-4">
+                      {/* Contact Section */}
+                      <div className="space-y-2">
+                        <div className="text-xs font-medium text-muted-foreground">Contact</div>
+                        <div className="space-y-1">
+                          {lead.email && lead.email !== "N/A" && (
+                            <div>
+                              <LinkCell url={lead.email} icon={Mail} isEmail={true} />
+                            </div>
+                          )}
+                          {lead.linkedin && lead.linkedin !== "N/A" && (
+                            <div>
+                              <LinkCell url={lead.linkedin} icon={Linkedin} />
+                            </div>
+                          )}
+                        </div>
+                      </div>
 
-                <TableCell className="align-top">
-                  <div className="space-y-2">
-                    {lead.email && lead.email !== "N/A" && (
-                      <div className="flex items-center gap-2">
-                        <LinkCell url={lead.email} icon={Mail} isEmail={true} />
-                      </div>
-                    )}
-                    {lead.linkedin && lead.linkedin !== "N/A" && (
-                      <div className="flex items-center gap-2">
-                        <LinkCell url={lead.linkedin} icon={Linkedin} />
-                      </div>
-                    )}
-                  </div>
-                </TableCell>
-
-                <TableCell className="align-top">
-                  <div className="space-y-1">
-                    <div className="font-medium">
-                      {lead.company && lead.company !== "N/A" ? lead.company : '—'}
-                    </div>
-                    {lead.website && lead.website !== "N/A" && (
-                      <div className="text-sm">
-                        <LinkCell url={lead.website} icon={Globe} />
-                      </div>
-                    )}
-                    {(lead.companyIndustry || lead.companyBusiness) && (
-                      <div className="flex flex-col gap-1 mt-2">
-                        {lead.companyIndustry && lead.companyIndustry !== "N/A" && (
-                          <div className="flex flex-col gap-0.5">
-                            <span className="text-xs text-muted-foreground">Industry</span>
-                            <span className="text-sm bg-muted/50 px-2 py-1 rounded">
-                              {lead.companyIndustry}
-                            </span>
+                      {/* Company Section */}
+                      <div className="space-y-2">
+                        <div className="text-xs font-medium text-muted-foreground">Company</div>
+                        <div>
+                          <div className="font-medium">
+                            {lead.company && lead.company !== "N/A" ? lead.company : '—'}
                           </div>
-                        )}
-                        {lead.companyBusiness && lead.companyBusiness !== "N/A" && (
-                          <div className="flex flex-col gap-0.5">
-                            <span className="text-xs text-muted-foreground">Business</span>
-                            <span className="text-sm bg-muted/50 px-2 py-1 rounded">
-                              {lead.companyBusiness}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                </TableCell>
-
-                <TableCell className="align-top">
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <div className="flex flex-col gap-1">
-                        <div className="text-xs text-muted-foreground">Target</div>
-                        <TooltipProvider delayDuration={0}>
-                          <Tooltip>
-                            <TooltipTrigger>
-                              <Badge 
-                                variant={lead.isTarget === targetStatusEnum.enumValues[0] ? "success" : // "YES"
-                                        lead.isTarget === targetStatusEnum.enumValues[1] ? "destructive" : "outline"} // "NO"
-                                className="w-20 justify-center"
-                              >
-                                {lead.isTarget}
-                              </Badge>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <div className="max-w-[300px] whitespace-pre-wrap">
-                                {parseQualificationReason(lead.qualificationReason, 'target')}
-                              </div>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      </div>
-
-                      <div className="flex flex-col gap-1">
-                        <div className="text-xs text-muted-foreground">ICP</div>
-                        <TooltipProvider delayDuration={0}>
-                          <Tooltip>
-                            <TooltipTrigger>
-                              <Badge 
-                                variant={lead.icpFit === icpFitStatusEnum.enumValues[0] ? "success" : // "YES"
-                                        lead.icpFit === icpFitStatusEnum.enumValues[1] ? "destructive" : "outline"} // "NO"
-                                className="w-20 justify-center"
-                              >
-                                {lead.icpFit}
-                              </Badge>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <div className="max-w-[300px] whitespace-pre-wrap">
-                                {parseQualificationReason(lead.qualificationReason, 'icp')}
-                              </div>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      </div>
-                    </div>
-                  </div>
-                </TableCell>
-
-                <TableCell className="align-top">
-                  <div className="flex gap-1">
-                    {lead.hasBusinessCard && lead.rawBusinessCard && (
-                      <TooltipProvider delayDuration={0}>
-                        <Tooltip>
-                          <TooltipTrigger>
-                            <Badge variant="secondary" className="h-7 px-3">📸</Badge>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <div className="max-w-[300px] whitespace-pre-wrap">
-                              {lead.rawBusinessCard}
+                          {lead.website && lead.website !== "N/A" && (
+                            <div className="text-sm">
+                              <LinkCell url={lead.website} icon={Globe} />
                             </div>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    )}
-                    {lead.hasTextNote && lead.rawTextNote && (
-                      <TooltipProvider delayDuration={0}>
-                        <Tooltip>
-                          <TooltipTrigger>
-                            <Badge variant="secondary" className="h-7 px-3">📝</Badge>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <div className="max-w-[300px] whitespace-pre-wrap">
-                              {lead.rawTextNote}
-                            </div>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    )}
-                    {lead.hasVoiceMemo && lead.rawVoiceMemo && (
-                      <TooltipProvider delayDuration={0}>
-                        <Tooltip>
-                          <TooltipTrigger>
-                            <Badge variant="secondary" className="h-7 px-3">🎤</Badge>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <div className="max-w-[300px] whitespace-pre-wrap">
-                              {lead.rawVoiceMemo}
-                            </div>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    )}
-                    {lead.referrals && lead.referrals.length > 0 && (
-                      <TooltipProvider delayDuration={0}>
-                        <Tooltip>
-                          <TooltipTrigger>
-                            <Badge variant="secondary" className="h-7 px-3">👥</Badge>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <div className="max-w-[300px] whitespace-pre-wrap">
-                              Has {lead.referrals.length} referral{lead.referrals.length > 1 ? 's' : ''}
-                            </div>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    )}
-                  </div>
-                </TableCell>
-
-                <TableCell className="align-top">
-                  <div className="space-y-2">
-                    {lead.contactTiming && lead.contactTiming !== "N/A" && (
-                      <div className="flex items-center gap-2 text-sm">
-                        <Calendar className="h-4 w-4 text-muted-foreground" />
-                        {lead.contactTiming}
-                      </div>
-                    )}
-                    {lead.contactDate && lead.contactDate !== "N/A" && (
-                      <div className="flex items-center gap-2 text-sm">
-                        <Calendar className="h-4 w-4 text-muted-foreground" />
-                        {lead.contactDate}
-                      </div>
-                    )}
-                    {lead.followUpTemplate && lead.followUpTemplate !== "N/A" && (
-                      <div className="flex flex-col gap-1">
-                        <div className="text-xs text-muted-foreground">LinkedIn Message</div>
-                        <div className="text-sm bg-muted/50 p-2 rounded-md">
-                          {lead.followUpTemplate}
-                        </div>
-                      </div>
-                    )}
-                    {lead.nextSteps && lead.nextSteps !== "N/A" && (
-                      <div className="flex flex-col gap-1">
-                        <div className="text-xs text-muted-foreground">Next Steps</div>
-                        <div className="text-sm bg-muted/50 p-2 rounded-md">
-                          {lead.nextSteps}
-                        </div>
-                      </div>
-                    )}
-                    {lead.notes && lead.notes !== "N/A" && lead.notes !== "No additional notes" && (
-                      <div className="flex flex-col gap-1">
-                        <div className="text-xs text-muted-foreground">Notes</div>
-                        <div className="text-sm bg-muted/50 p-2 rounded-md">
-                          {lead.notes}
-                        </div>
-                      </div>
-                    )}
-                    {lead.referrals && lead.referrals.length > 0 && (
-                      <div className="flex flex-col gap-1">
-                        <div className="text-xs text-muted-foreground">Referrals</div>
-                        <Accordion type="single" collapsible className="w-full">
-                          {lead.referrals.map((referral, index) => (
-                            <AccordionItem key={index} value={`referral-${index}`} className="border-0">
-                              <AccordionTrigger className="py-0 hover:no-underline">
-                                <Badge variant="purple" className="whitespace-nowrap cursor-pointer hover:bg-purple-600">
-                                  {referral.firstName} {referral.lastName}
-                                </Badge>
-                              </AccordionTrigger>
-                              <AccordionContent className="pb-2">
-                                <div className="pl-2 pt-2 space-y-1 text-sm">
-                                  {referral.position && (
-                                    <div className="text-muted-foreground">
-                                      Position: {referral.position}
-                                    </div>
-                                  )}
-                                  {referral.contactTiming && (
-                                    <div className="text-muted-foreground">
-                                      When: {referral.contactTiming}
-                                    </div>
-                                  )}
-                                  {referral.contactDate && (
-                                    <div className="text-muted-foreground">
-                                      Date: {referral.contactDate}
-                                    </div>
-                                  )}
-                                  {referral.notes && (
-                                    <div className="bg-muted/50 p-2 rounded-md mt-2">
-                                      {referral.notes}
-                                    </div>
-                                  )}
+                          )}
+                          {(lead.companyIndustry || lead.companyBusiness) && (
+                            <div className="flex flex-col gap-1 mt-2">
+                              {lead.companyIndustry && lead.companyIndustry !== "N/A" && (
+                                <div className="flex flex-col gap-0.5">
+                                  <span className="text-xs text-muted-foreground">Industry</span>
+                                  <span className="text-sm bg-muted/50 px-2 py-1 rounded">
+                                    {lead.companyIndustry}
+                                  </span>
                                 </div>
-                              </AccordionContent>
-                            </AccordionItem>
-                          ))}
-                        </Accordion>
+                              )}
+                              {lead.companyBusiness && lead.companyBusiness !== "N/A" && (
+                                <div className="flex flex-col gap-0.5">
+                                  <span className="text-xs text-muted-foreground">Business</span>
+                                  <span className="text-sm bg-muted/50 px-2 py-1 rounded">
+                                    {lead.companyBusiness}
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    )}
-                  </div>
-                </TableCell>
-              </motion.tr>
-            ))}
-          </TableBody>
-        </Table>
+
+                      {/* Qualification Section */}
+                      <div className="space-y-2">
+                        <div className="text-xs font-medium text-muted-foreground">Qualification</div>
+                        <div className="flex items-center gap-4">
+                          <div className="flex flex-col gap-1">
+                            <div className="text-xs text-muted-foreground">Target</div>
+                            <TooltipProvider delayDuration={0}>
+                              <Tooltip>
+                                <TooltipTrigger>
+                                  <Badge 
+                                    variant={lead.isTarget === targetStatusEnum.enumValues[0] ? "success" : 
+                                            lead.isTarget === targetStatusEnum.enumValues[1] ? "destructive" : "outline"}
+                                    className="w-20 justify-center"
+                                  >
+                                    {lead.isTarget}
+                                  </Badge>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <div className="max-w-[300px] whitespace-pre-wrap">
+                                    {parseQualificationReason(lead.qualificationReason, 'target')}
+                                  </div>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          </div>
+
+                          <div className="flex flex-col gap-1">
+                            <div className="text-xs text-muted-foreground">ICP</div>
+                            <TooltipProvider delayDuration={0}>
+                              <Tooltip>
+                                <TooltipTrigger>
+                                  <Badge 
+                                    variant={lead.icpFit === icpFitStatusEnum.enumValues[0] ? "success" : 
+                                            lead.icpFit === icpFitStatusEnum.enumValues[1] ? "destructive" : "outline"}
+                                    className="w-20 justify-center"
+                                  >
+                                    {lead.icpFit}
+                                  </Badge>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <div className="max-w-[300px] whitespace-pre-wrap">
+                                    {parseQualificationReason(lead.qualificationReason, 'icp')}
+                                  </div>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Sources Section */}
+                      <div className="space-y-2">
+                        <div className="text-xs font-medium text-muted-foreground">Sources</div>
+                        <div className="flex gap-1">
+                          {lead.hasBusinessCard && lead.rawBusinessCard && (
+                            <TooltipProvider delayDuration={0}>
+                              <Tooltip>
+                                <TooltipTrigger>
+                                  <Badge variant="secondary" className="h-7 px-3">📸</Badge>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <div className="max-w-[300px] whitespace-pre-wrap">
+                                    {lead.rawBusinessCard}
+                                  </div>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          )}
+                          {lead.hasTextNote && lead.rawTextNote && (
+                            <TooltipProvider delayDuration={0}>
+                              <Tooltip>
+                                <TooltipTrigger>
+                                  <Badge variant="secondary" className="h-7 px-3">📝</Badge>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <div className="max-w-[300px] whitespace-pre-wrap">
+                                    {lead.rawTextNote}
+                                  </div>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          )}
+                          {lead.hasVoiceMemo && lead.rawVoiceMemo && (
+                            <TooltipProvider delayDuration={0}>
+                              <Tooltip>
+                                <TooltipTrigger>
+                                  <Badge variant="secondary" className="h-7 px-3">🎤</Badge>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <div className="max-w-[300px] whitespace-pre-wrap">
+                                    {lead.rawVoiceMemo}
+                                  </div>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          )}
+                          {lead.referrals && lead.referrals.length > 0 && (
+                            <TooltipProvider delayDuration={0}>
+                              <Tooltip>
+                                <TooltipTrigger>
+                                  <Badge variant="secondary" className="h-7 px-3">👥</Badge>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <div className="max-w-[300px] whitespace-pre-wrap">
+                                    {lead.referrals.length} referral{lead.referrals.length > 1 ? 's' : ''}
+                                  </div>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Follow-up Section */}
+                      <div className="space-y-2">
+                        <div className="text-xs font-medium text-muted-foreground">Follow-up</div>
+                        <div className="space-y-3">
+                          {lead.contactTiming && lead.contactTiming !== "N/A" && (
+                            <div className="flex items-center gap-2 text-sm">
+                              <Calendar className="h-4 w-4 text-muted-foreground" />
+                              {lead.contactTiming}
+                            </div>
+                          )}
+                          {lead.contactDate && lead.contactDate !== "N/A" && (
+                            <div className="flex items-center gap-2 text-sm">
+                              <Calendar className="h-4 w-4 text-muted-foreground" />
+                              {lead.contactDate}
+                            </div>
+                          )}
+                          {lead.followUpTemplate && lead.followUpTemplate !== "N/A" && (
+                            <div className="flex flex-col gap-1">
+                              <div className="text-xs text-muted-foreground">LinkedIn Message</div>
+                              <div className="text-sm bg-muted/50 p-2 rounded-md">
+                                {lead.followUpTemplate}
+                              </div>
+                            </div>
+                          )}
+                          {lead.nextSteps && lead.nextSteps !== "N/A" && (
+                            <div className="flex flex-col gap-1">
+                              <div className="text-xs text-muted-foreground">Next Steps</div>
+                              <div className="text-sm bg-muted/50 p-2 rounded-md">
+                                {lead.nextSteps}
+                              </div>
+                            </div>
+                          )}
+                          {lead.notes && lead.notes !== "N/A" && lead.notes !== "No additional notes" && (
+                            <div className="flex flex-col gap-1">
+                              <div className="text-xs text-muted-foreground">Notes</div>
+                              <div className="text-sm bg-muted/50 p-2 rounded-md">
+                                {lead.notes}
+                              </div>
+                            </div>
+                          )}
+                          {lead.referrals && lead.referrals.length > 0 && (
+                            <div className="flex flex-col gap-3">
+                              <div className="text-xs text-muted-foreground">Referrals</div>
+                              <div className="space-y-2">
+                                {lead.referrals.map((referral, index) => (
+                                  <Accordion type="multiple" className="w-full" key={index}>
+                                    <AccordionItem value={`referral-${index}`} className="border-0">
+                                      <AccordionTrigger className="py-0 hover:no-underline">
+                                        <Badge variant="purple" className="whitespace-nowrap cursor-pointer hover:bg-purple-600">
+                                          {referral.firstName} {referral.lastName}
+                                        </Badge>
+                                      </AccordionTrigger>
+                                      <AccordionContent className="pb-2">
+                                        <div className="pl-2 pt-2 space-y-1.5 text-sm">
+                                          {referral.position && (
+                                            <div className="text-muted-foreground">
+                                              Position: {referral.position}
+                                            </div>
+                                          )}
+                                          {referral.contactTiming && (
+                                            <div className="text-muted-foreground">
+                                              When: {referral.contactTiming}
+                                            </div>
+                                          )}
+                                          {referral.contactDate && (
+                                            <div className="text-muted-foreground">
+                                              Date: {referral.contactDate}
+                                            </div>
+                                          )}
+                                          {referral.notes && (
+                                            <div className="bg-muted/50 p-2 rounded-md mt-2">
+                                              {referral.notes}
+                                            </div>
+                                          )}
+                                        </div>
+                                      </AccordionContent>
+                                    </AccordionItem>
+                                  </Accordion>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
+            </motion.div>
+          ))}
+        </div>
       </CardContent>
     </Card>
   )

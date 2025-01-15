@@ -232,7 +232,12 @@ export default function VoiceMemosPage() {
 
         {leads.length > 0 && (
           <div>
-            <LeadsTable leads={leads} />
+            <LeadsTable 
+              leads={leads} 
+              showActions={false}
+              showQualificationFilter={false}
+              showQualificationStats={false}
+            />
           </div>
         )}
       </div>
