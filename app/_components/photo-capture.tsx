@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { X, Camera, FileImage } from "lucide-react"
+import { X, Camera, FileImage, ImagePlus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { motion } from "framer-motion"
 import { cn } from "@/lib/utils"
@@ -47,6 +47,13 @@ export default function PhotoCapture({ onCapture }: PhotoCaptureProps) {
     onCapture(null)
   }
 
+  // Function to handle base64 to file conversion (for camera capture)
+  const base64ToFile = async (base64String: string, filename: string): Promise<File> => {
+    const res = await fetch(base64String)
+    const blob = await res.blob()
+    return new File([blob], filename, { type: 'image/jpeg' })
+  }
+
   return (
     <div className="space-y-8">
       <motion.div 
@@ -59,32 +66,66 @@ export default function PhotoCapture({ onCapture }: PhotoCaptureProps) {
       >
         <div className="relative w-full flex flex-col items-center">
           {!photo ? (
-            <label className="cursor-pointer">
-              <input
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={handleFileSelect}
-              />
-              <div className={cn(
-                "p-8 rounded-2xl transition-colors duration-200",
-                "bg-emerald-100 dark:bg-emerald-900/30"
-              )}>
-                <Button 
-                  size="lg"
-                  variant="default"
-                  className={cn(
-                    "h-16 w-16 rounded-xl transition-all duration-300 hover:scale-105",
-                    "bg-emerald-500 hover:bg-emerald-600 text-white"
-                  )}
-                  asChild
-                >
-                  <span>
-                    <Camera className="w-6 h-6" />
-                  </span>
-                </Button>
-              </div>
-            </label>
+            <div className="flex flex-col gap-4 items-center w-full">
+              {/* Camera capture input */}
+              <label className="cursor-pointer w-full">
+                <input
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  className="hidden"
+                  onChange={handleFileSelect}
+                />
+                <div className={cn(
+                  "p-8 rounded-2xl transition-colors duration-200 w-full",
+                  "bg-emerald-100 dark:bg-emerald-900/30"
+                )}>
+                  <Button 
+                    size="lg"
+                    variant="default"
+                    className={cn(
+                      "h-16 w-full rounded-xl transition-all duration-300 hover:scale-105",
+                      "bg-emerald-500 hover:bg-emerald-600 text-white flex items-center justify-center gap-2"
+                    )}
+                    asChild
+                  >
+                    <span>
+                      <Camera className="w-6 h-6" />
+                      <span>Take Photo</span>
+                    </span>
+                  </Button>
+                </div>
+              </label>
+
+              {/* File selection input */}
+              <label className="cursor-pointer w-full">
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleFileSelect}
+                />
+                <div className={cn(
+                  "p-8 rounded-2xl transition-colors duration-200 w-full",
+                  "bg-blue-100 dark:bg-blue-900/30"
+                )}>
+                  <Button 
+                    size="lg"
+                    variant="default"
+                    className={cn(
+                      "h-16 w-full rounded-xl transition-all duration-300 hover:scale-105",
+                      "bg-blue-500 hover:bg-blue-600 text-white flex items-center justify-center gap-2"
+                    )}
+                    asChild
+                  >
+                    <span>
+                      <ImagePlus className="w-6 h-6" />
+                      <span>Choose from Gallery</span>
+                    </span>
+                  </Button>
+                </div>
+              </label>
+            </div>
           ) : (
             <motion.div 
               className="w-full space-y-2"
