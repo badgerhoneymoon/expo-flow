@@ -35,10 +35,24 @@ IMPORTANT: If any information is unclear, ambiguous, or not explicitly mentioned
      * If multiple companies mentioned, use most relevant
 
 2. Contact Information:
-   - Email:
+   - Personal Email:
+     * Look for email addresses that appear personal
      * Verify valid email format
      * Fix common domain misspellings
-     * Cross-reference company name for domain validation
+   - Company Email:
+     * Look for email addresses matching company domain
+     * Must match company website domain if present
+     * Verify valid email format
+     * Fix common domain misspellings
+   - Personal Phone:
+     * Look for mobile/cell phone numbers
+     * Must be clearly labeled as personal/mobile/cell
+     * Format consistently with country code if present
+     * Remove any spaces or special characters
+   - Company Phone:
+     * Look for phone numbers labeled as office/work/company
+     * Format consistently with country code if present
+     * Remove any spaces or special characters
    - LinkedIn:
      * Must start with "linkedin.com/in/"
      * Apply validated name spelling

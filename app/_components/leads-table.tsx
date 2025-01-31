@@ -533,14 +533,17 @@ export default function LeadsTable({
                   </AccordionTrigger>
                   <AccordionContent>
                     <div className="p-4 space-y-4">
-                      {/* Contact Section */}
+                      {/* Personal Contact Section */}
                       <div className="space-y-2">
-                        <div className="text-xs font-medium text-muted-foreground">Contact</div>
+                        <div className="text-xs font-medium text-muted-foreground">Personal Contact</div>
                         <div className="space-y-1">
-                          {lead.email && lead.email !== "N/A" && (
+                          {lead.personalEmail && lead.personalEmail !== "N/A" && (
                             <div>
-                              <LinkCell url={lead.email} icon={Mail} isEmail={true} />
+                              <LinkCell url={lead.personalEmail} icon={Mail} isEmail={true} />
                             </div>
+                          )}
+                          {lead.personalPhone && lead.personalPhone !== "N/A" && (
+                            <div className="text-sm">📱 {lead.personalPhone}</div>
                           )}
                           {lead.linkedin && lead.linkedin !== "N/A" && (
                             <div>
@@ -557,11 +560,21 @@ export default function LeadsTable({
                           <div className="font-medium">
                             {lead.company && lead.company !== "N/A" ? lead.company : '—'}
                           </div>
-                          {lead.website && lead.website !== "N/A" && (
-                            <div className="text-sm">
-                              <LinkCell url={lead.website} icon={Globe} />
-                            </div>
-                          )}
+                          <div className="space-y-1 mt-1">
+                            {lead.website && lead.website !== "N/A" && (
+                              <div className="text-sm">
+                                <LinkCell url={lead.website} icon={Globe} />
+                              </div>
+                            )}
+                            {lead.companyEmail && lead.companyEmail !== "N/A" && (
+                              <div>
+                                <LinkCell url={lead.companyEmail} icon={Mail} isEmail={true} />
+                              </div>
+                            )}
+                            {lead.companyPhone && lead.companyPhone !== "N/A" && (
+                              <div className="text-sm">☎️ {lead.companyPhone}</div>
+                            )}
+                          </div>
                           {(lead.companyIndustry || lead.companyBusiness) && (
                             <div className="flex flex-col gap-1 mt-2">
                               {lead.companyIndustry && lead.companyIndustry !== "N/A" && (

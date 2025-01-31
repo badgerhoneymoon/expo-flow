@@ -22,7 +22,10 @@ export const StructuredOutputSchema = z.object({
   website: z.string().optional(),
   
   // Contact Info
-  email: z.string().optional(),
+  personalEmail: z.string().optional(),
+  companyEmail: z.string().optional(),
+  personalPhone: z.string().optional(),
+  companyPhone: z.string().optional(),
   linkedin: z.string().optional(),
 
   // Internal enrichment specific fields

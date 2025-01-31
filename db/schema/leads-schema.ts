@@ -33,7 +33,10 @@ export const leads = pgTable("leads", {
   website: text("website"),
   
   // Contact Info
-  email: text("email"),
+  personalEmail: text("personal_email"),
+  companyEmail: text("company_email"),
+  personalPhone: text("personal_phone"),
+  companyPhone: text("company_phone"),
   linkedin: text("linkedin"),
 
   // Source Tracking
