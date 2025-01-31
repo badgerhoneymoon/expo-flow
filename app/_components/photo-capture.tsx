@@ -66,9 +66,9 @@ export default function PhotoCapture({ onCapture }: PhotoCaptureProps) {
       >
         <div className="relative w-full flex flex-col items-center">
           {!photo ? (
-            <div className="flex flex-col gap-4 items-center w-full">
+            <div className="grid grid-cols-2 gap-4 w-full">
               {/* Camera capture input */}
-              <label className="cursor-pointer w-full">
+              <label className="cursor-pointer">
                 <input
                   type="file"
                   accept="image/*"
@@ -77,28 +77,28 @@ export default function PhotoCapture({ onCapture }: PhotoCaptureProps) {
                   onChange={handleFileSelect}
                 />
                 <div className={cn(
-                  "p-8 rounded-2xl transition-colors duration-200 w-full",
+                  "p-4 rounded-2xl transition-colors duration-200 h-full",
                   "bg-emerald-100 dark:bg-emerald-900/30"
                 )}>
                   <Button 
                     size="lg"
                     variant="default"
                     className={cn(
-                      "h-16 w-full rounded-xl transition-all duration-300 hover:scale-105",
-                      "bg-emerald-500 hover:bg-emerald-600 text-white flex items-center justify-center gap-2"
+                      "h-full w-full rounded-xl transition-all duration-300 hover:scale-105",
+                      "bg-emerald-500 hover:bg-emerald-600 text-white flex flex-col items-center justify-center gap-2 py-4"
                     )}
                     asChild
                   >
                     <span>
                       <Camera className="w-6 h-6" />
-                      <span>Take Photo</span>
+                      <span className="text-sm font-medium">Take Photo</span>
                     </span>
                   </Button>
                 </div>
               </label>
 
               {/* File selection input */}
-              <label className="cursor-pointer w-full">
+              <label className="cursor-pointer">
                 <input
                   type="file"
                   accept="image/*"
@@ -106,21 +106,21 @@ export default function PhotoCapture({ onCapture }: PhotoCaptureProps) {
                   onChange={handleFileSelect}
                 />
                 <div className={cn(
-                  "p-8 rounded-2xl transition-colors duration-200 w-full",
+                  "p-4 rounded-2xl transition-colors duration-200 h-full",
                   "bg-blue-100 dark:bg-blue-900/30"
                 )}>
                   <Button 
                     size="lg"
                     variant="default"
                     className={cn(
-                      "h-16 w-full rounded-xl transition-all duration-300 hover:scale-105",
-                      "bg-blue-500 hover:bg-blue-600 text-white flex items-center justify-center gap-2"
+                      "h-full w-full rounded-xl transition-all duration-300 hover:scale-105",
+                      "bg-blue-500 hover:bg-blue-600 text-white flex flex-col items-center justify-center gap-2 py-4"
                     )}
                     asChild
                   >
                     <span>
                       <ImagePlus className="w-6 h-6" />
-                      <span>Choose from Gallery</span>
+                      <span className="text-sm font-medium">Choose from Gallery</span>
                     </span>
                   </Button>
                 </div>

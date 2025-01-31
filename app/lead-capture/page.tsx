@@ -13,10 +13,10 @@ import { uploadBusinessCard, uploadVoiceMemo } from "@/lib/storage/storage-clien
 import { createCapturedLead } from "@/actions/capture-lead-actions"
 import { getLeads } from "@/actions/leads-actions"
 import type { Lead } from "@/db/schema/leads-schema"
-import { OCRService } from '@/lib/services/ocr-service'
 import type { StructuredOutput } from '@/types/structured-output-types'
 import { processStructuredData } from "@/actions/process-structured-data"
 import { transcribeVoiceMemo } from "@/actions/process-voice-memo"
+import { extractTextFromImage } from '@/actions/vision-actions'
 
 // Dynamically import VoiceRecorder with no SSR
 const VoiceRecorder = dynamic(
@@ -66,9 +66,14 @@ export default function VoiceMemosPage() {
       if (capturedFiles.businessCard) {
         try {
           businessCardPath = await uploadBusinessCard(capturedFiles.businessCard)
-          const ocrResult = await OCRService.performOCR(capturedFiles.businessCard)
-          if (ocrResult.success && ocrResult.text) {
-            combinedContext += `BUSINESS CARD:\n${ocrResult.text}\n\n`
+          
+          // Create FormData for Vision API
+          const formData = new FormData()
+          formData.append('file', capturedFiles.businessCard)
+          
+          const visionResult = await extractTextFromImage(formData)
+          if (visionResult.success && visionResult.text) {
+            combinedContext += `BUSINESS CARD:\n${visionResult.text}\n\n`
           }
         } catch (error) {
           console.error('Error processing business card:', error)

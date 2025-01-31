@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { ImagePlus, FileText, Mic, Check, Sparkles } from 'lucide-react'
 import { extractBusinessCard } from '@/actions/extract-business-card'
-import { OCRService } from '@/lib/services/ocr-service'
+import { extractTextFromImage } from '@/actions/vision-actions'
 import { processVoiceMemo } from '@/actions/process-voice-memo'
 import { processTextNotes } from '@/actions/process-text-notes'
 import { RainbowButton } from "@/components/ui/rainbow-button"
@@ -67,14 +67,18 @@ export default function UploadForm() {
       
       if (file.type === 'image') {
         try {
-          const ocrResult = await OCRService.performOCR(file.file);
+          // Create FormData for Vision API
+          const formData = new FormData()
+          formData.append('file', file.file)
           
-          if (!ocrResult.success) {
-            throw new Error(ocrResult.error);
+          const visionResult = await extractTextFromImage(formData)
+          
+          if (!visionResult.success) {
+            throw new Error(visionResult.error)
           }
 
-          const response = await extractBusinessCard(ocrResult.text!);
-          console.log('Server response:', response);
+          const response = await extractBusinessCard(visionResult.text!)
+          console.log('Server response:', response)
           
           setFiles(prev => 
             prev.map((f, index) => 
@@ -82,8 +86,8 @@ export default function UploadForm() {
                 ...f, 
                 progress: 100,
                 result: [
-                  '=== OCR Raw Output ===',
-                  ocrResult.text,
+                  '=== Vision API Raw Output ===',
+                  visionResult.text,
                   '',
                   '=== Structured Data ===',
                   JSON.stringify(response.data, null, 2)
@@ -92,7 +96,7 @@ export default function UploadForm() {
             )
           )
         } catch (error) {
-          console.error('Error processing image:', error);
+          console.error('Error processing image:', error)
           setFiles(prev => 
             prev.map((f, index) => 
               index === i ? { ...f, progress: 100, result: 'Error processing image: ' + (error as Error).message } : f

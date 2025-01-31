@@ -49,7 +49,7 @@ function LinkCell({ url, icon: Icon, isEmail = false }: { url: string | null, ic
       className="text-blue-600 hover:text-blue-800 hover:underline inline-flex items-center gap-1"
     >
       <Icon className="h-4 w-4" />
-      <span className="max-w-[150px] truncate">
+      <span className={isEmail ? undefined : "max-w-[150px] truncate"}>
         {isEmail ? url : cleanUrl(url)}
       </span>
     </a>

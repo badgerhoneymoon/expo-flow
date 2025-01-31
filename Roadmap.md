@@ -1,0 +1,2 @@
+- Two sided business card toggle
+- Рамки в камере как для фотки кредиток
