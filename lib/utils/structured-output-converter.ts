@@ -11,7 +11,10 @@ export function structuredOutputToNewLead(output: StructuredOutput): Omit<NewLea
     website: output.website || null,
     
     // Contact Info
-    email: output.email || null,
+    personalEmail: output.personalEmail || null,
+    companyEmail: output.companyEmail || null,
+    personalPhone: output.personalPhone || null,
+    companyPhone: output.companyPhone || null,
     linkedin: output.linkedin || null,
 
     // Internal enrichment
