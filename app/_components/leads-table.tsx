@@ -519,15 +519,58 @@ export default function LeadsTable({
               >
                 <AccordionItem value={lead.id} className="border-0">
                   <AccordionTrigger className="px-4 py-2 hover:no-underline">
-                    <div className="text-left">
-                      <div className="font-medium">
-                        {lead.firstName !== "N/A" && lead.lastName !== "N/A" ? 
-                          `${lead.firstName} ${lead.lastName}` : 
-                          <span className="text-muted-foreground">—</span>
-                        }
+                    <div className="flex items-center justify-between w-full">
+                      <div className="text-left">
+                        <div className="font-medium">
+                          {lead.firstName !== "N/A" && lead.lastName !== "N/A" ? 
+                            `${lead.firstName} ${lead.lastName}` : 
+                            <span className="text-muted-foreground">—</span>
+                          }
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          {lead.jobTitle && lead.jobTitle !== "N/A" ? lead.jobTitle : '—'}
+                        </div>
                       </div>
-                      <div className="text-sm text-muted-foreground">
-                        {lead.jobTitle && lead.jobTitle !== "N/A" ? lead.jobTitle : '—'}
+                      <div className={cn(
+                        "flex items-center gap-2 mr-8",
+                        expandedLead === lead.id && "hidden"
+                      )}>
+                        <TooltipProvider delayDuration={0}>
+                          <Tooltip>
+                            <TooltipTrigger>
+                              <Badge 
+                                variant={lead.isTarget === targetStatusEnum.enumValues[0] ? "success" : 
+                                        lead.isTarget === targetStatusEnum.enumValues[1] ? "destructive" : "outline"}
+                                className="w-16 justify-center"
+                              >
+                                Target
+                              </Badge>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <div className="max-w-[300px] whitespace-pre-wrap">
+                                {parseQualificationReason(lead.qualificationReason, 'target')}
+                              </div>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                        <TooltipProvider delayDuration={0}>
+                          <Tooltip>
+                            <TooltipTrigger>
+                              <Badge 
+                                variant={lead.icpFit === icpFitStatusEnum.enumValues[0] ? "success" : 
+                                        lead.icpFit === icpFitStatusEnum.enumValues[1] ? "destructive" : "outline"}
+                                className="w-16 justify-center"
+                              >
+                                ICP
+                              </Badge>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <div className="max-w-[300px] whitespace-pre-wrap">
+                                {parseQualificationReason(lead.qualificationReason, 'icp')}
+                              </div>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
                       </div>
                     </div>
                   </AccordionTrigger>
@@ -610,7 +653,7 @@ export default function LeadsTable({
                                   <Badge 
                                     variant={lead.isTarget === targetStatusEnum.enumValues[0] ? "success" : 
                                             lead.isTarget === targetStatusEnum.enumValues[1] ? "destructive" : "outline"}
-                                    className="w-20 justify-center"
+                                    className="w-16 justify-center"
                                   >
                                     {lead.isTarget}
                                   </Badge>
@@ -632,7 +675,7 @@ export default function LeadsTable({
                                   <Badge 
                                     variant={lead.icpFit === icpFitStatusEnum.enumValues[0] ? "success" : 
                                             lead.icpFit === icpFitStatusEnum.enumValues[1] ? "destructive" : "outline"}
-                                    className="w-20 justify-center"
+                                    className="w-16 justify-center"
                                   >
                                     {lead.icpFit}
                                   </Badge>
