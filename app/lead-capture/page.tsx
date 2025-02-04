@@ -33,7 +33,7 @@ interface CapturedFiles {
   textNotes?: string
 }
 
-export default function VoiceMemosPage() {
+export default function LeadCapturePage() {  // Renamed for clarity
   const [capturedFiles, setCapturedFiles] = useState<CapturedFiles>({})
   const [isUploading, setIsUploading] = useState(false)
   const [key, setKey] = useState(0)
@@ -66,19 +66,16 @@ export default function VoiceMemosPage() {
       let rawVoiceMemoText: string | undefined
       let rawBusinessCardText: string | undefined
 
-      // First, collect all raw text
-      // 1. Business Card OCR
+      // Process business card
       if (capturedFiles.businessCard) {
         try {
           businessCardPath = await uploadBusinessCard(capturedFiles.businessCard)
-          
-          // Create FormData for Vision API
           const formData = new FormData()
           formData.append('file', capturedFiles.businessCard)
           
           const visionResult = await extractTextFromImage(formData)
           if (visionResult.success && visionResult.text) {
-            rawBusinessCardText = visionResult.text // Store raw OCR text
+            rawBusinessCardText = visionResult.text
             combinedContext += `BUSINESS CARD:\n${visionResult.text}\n\n`
           }
         } catch (error) {
@@ -86,55 +83,41 @@ export default function VoiceMemosPage() {
         }
       }
 
-      // 2. Voice Memo Transcription
+      // Process voice memo
       if (capturedFiles.voiceMemo) {
         try {
           console.log('[Upload] Starting voice memo processing')
-          
           voiceMemoPath = await uploadVoiceMemo(capturedFiles.voiceMemo)
-          console.log('[Upload] Voice memo uploaded to storage:', voiceMemoPath)
           
-          // Convert Blob to File and create FormData
           const audioFile = new File([capturedFiles.voiceMemo], 'voice-memo.mp3', { type: 'audio/mp3' })
           const formData = new FormData()
           formData.append('file', audioFile)
           
           const { success, text, error } = await transcribeVoiceMemo(formData)
-          console.log('[Upload] Transcription result:', { success, text, error })
           
           if (success && text) {
-            console.log('[Upload] Raw voice memo text before storage:', text)
-            rawVoiceMemoText = text // Store raw transcription
-            console.log('[Upload] Raw voice memo text after storage:', rawVoiceMemoText)
+            rawVoiceMemoText = text
             combinedContext += `VOICE MEMO:\n${text}\n\n`
-            console.log('[Upload] Updated combined context:', combinedContext)
           } else {
             console.error('[Upload] Transcription failed:', error)
           }
         } catch (error) {
           console.error('[Upload] Error processing voice memo:', error)
-          console.error('[Upload] Error details:', {
-            name: error instanceof Error ? error.name : 'Unknown',
-            message: error instanceof Error ? error.message : String(error)
-          })
         }
       }
 
-      // 3. Text Notes
+      // Add text notes
       if (capturedFiles.textNotes) {
         combinedContext += `TEXT NOTES:\n${capturedFiles.textNotes}\n\n`
       }
 
-      // Now process all the text together
-      console.log('[Upload] Processing combined context:', combinedContext)
+      // Process structured data
       const result = await processStructuredData(combinedContext)
-      console.log('[Upload] Structured data result:', result)
-
       if (!result.success || !result.data) {
         throw new Error(result.error || 'Failed to structure data')
       }
 
-      // Create the structured data with source tracking
+      // Create structured output
       const structuredData: StructuredOutput = {
         ...result.data,
         hasBusinessCard: !!businessCardPath,
@@ -142,33 +125,26 @@ export default function VoiceMemosPage() {
         hasTextNote: !!capturedFiles.textNotes,
         businessCardPath,
         voiceMemoPath,
-        // Store the full raw text sections
         rawBusinessCard: rawBusinessCardText,
         rawVoiceMemo: rawVoiceMemoText,
         rawTextNote: capturedFiles.textNotes || undefined
       }
-      console.log('[Upload] Final structured data with raw voice memo:', structuredData.rawVoiceMemo)
 
-      // Create a single lead record
+      // Create lead
       const createResult = await createCapturedLead({
         businessCardPath,
         voiceMemoPath,
         rawTextNote: capturedFiles.textNotes,
         structuredData
       })
-      console.log('[Upload] Create lead result:', createResult)
       
       if (!createResult.success) {
         throw new Error(createResult.error)
       }
 
       toast.success('Lead created and processed successfully')
-      
-      // Reset all captures
       setCapturedFiles({})
       setKey(prev => prev + 1)
-      
-      // Refresh leads list
       fetchLeads()
     } catch (error) {
       console.error('Upload error:', error)
