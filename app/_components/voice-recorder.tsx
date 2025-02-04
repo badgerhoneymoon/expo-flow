@@ -7,6 +7,26 @@ import { motion, AnimatePresence } from "framer-motion"
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
 
+// Add function to send logs to server
+async function sendLogToServer(action: string, data: any) {
+  try {
+    await fetch('/api/debug-log', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        action,
+        data,
+        userAgent: navigator.userAgent,
+        timestamp: new Date().toISOString()
+      })
+    })
+  } catch (error) {
+    console.error('Failed to send log:', error)
+  }
+}
+
 interface RecordingStats {
   size: number
   duration: number
@@ -32,9 +52,37 @@ export default function VoiceRecorder({ onCapture }: VoiceRecorderProps) {
     // Request microphone access on mount
     navigator.mediaDevices.getUserMedia({ audio: true })
       .then(stream => {
-        mediaRecorderRef.current = new MediaRecorder(stream)
+        // Log available MIME types
+        const supportedTypes = [
+          'audio/webm',
+          'audio/mp4',
+          'audio/ogg',
+          'audio/wav',
+          'audio/mp3'
+        ].filter(type => MediaRecorder.isTypeSupported(type))
+
+        sendLogToServer('init', {
+          supportedTypes,
+          userAgent: navigator.userAgent
+        })
+
+        // Try to use a supported MIME type
+        const options = {
+          mimeType: supportedTypes[0] || 'audio/webm'
+        }
+        
+        sendLogToServer('recorder-config', {
+          selectedMimeType: options.mimeType
+        })
+
+        mediaRecorderRef.current = new MediaRecorder(stream, options)
         
         mediaRecorderRef.current.ondataavailable = (e) => {
+          const chunkInfo = {
+            size: e.data.size,
+            type: e.data.type
+          }
+          sendLogToServer('chunk-available', chunkInfo)
           chunksRef.current.push(e.data)
         }
 
@@ -45,31 +93,36 @@ export default function VoiceRecorder({ onCapture }: VoiceRecorderProps) {
 
           if (startTimeRef.current) {
             const duration = (Date.now() - startTimeRef.current) / 1000
+            const recordingInfo = {
+              size: blob.size,
+              type: blob.type,
+              mimeType: mediaRecorderRef.current?.mimeType,
+              duration,
+              chunks: chunksRef.current.length,
+              chunkSizes: chunksRef.current.map(chunk => chunk.size)
+            }
+            
             setStats({
               size: blob.size,
               duration,
               bitrate: (blob.size * 8) / (duration * 1000)
             })
 
-            console.log('Recorded file details:', {
-              size: blob.size, 
-              type: blob.type,
-              duration: duration
-            })
-
+            sendLogToServer('recording-completed', recordingInfo)
             onCapture(blob)
           }
 
           const url = URL.createObjectURL(blob)
           setAudioUrl(url)
-
           chunksRef.current = []
         }
 
-        console.log("✅ Microphone access granted")
+        sendLogToServer('init-success', { message: 'Microphone access granted' })
       })
       .catch(err => {
-        console.error("❌ Microphone access error:", err)
+        sendLogToServer('init-error', { 
+          error: err.message || 'Microphone access denied'
+        })
         toast.error("Please allow microphone access")
       })
 
@@ -87,12 +140,18 @@ export default function VoiceRecorder({ onCapture }: VoiceRecorderProps) {
     if (!mediaRecorderRef.current) return
 
     if (isRecording) {
+      sendLogToServer('recording-stop', {
+        duration: timer
+      })
       mediaRecorderRef.current.stop()
       if (timerRef.current) {
         clearInterval(timerRef.current)
       }
       setIsRecording(false)
     } else {
+      sendLogToServer('recording-start', {
+        mimeType: mediaRecorderRef.current.mimeType
+      })
       startTimeRef.current = Date.now()
       setTimer(0)
       timerRef.current = setInterval(() => {
