@@ -62,14 +62,20 @@ IMPORTANT: If any information is unclear, ambiguous, or not explicitly mentioned
 
 3. Business Context:
    - Main Interest:
-     * Only capture explicitly stated interests/focus areas
-     * Must be clearly mentioned, not implied
+     * Capture both explicit and implied business interests/focus areas
+     * Look for topics they were enthusiastic about
+     * Consider what problems or solutions they mentioned
+     * Can be derived from the overall conversation context
    - Next Steps:
-     * Only include clearly stated action items
-     * Must have specific, mentioned actions
+     * Include both explicit and suggested follow-up actions
+     * Can be derived from the conversation context
+     * If no specific actions were mentioned, suggest logical next steps based on their interests and needs
+     * Examples: "Schedule demo", "Send materials about X", "Follow up about Y"
    - Notes:
-     * Only include clearly stated, factual information
-     * No interpretations or assumptions
+     * Include both factual information and relevant context
+     * Can include interpreted information if reasonably derived from the conversation
+     * Capture key points from the conversation, even if not explicitly stated as notes
+     * Include relevant background information that provides context
 
 4. Follow-up Information:
    - Contact Timing:
