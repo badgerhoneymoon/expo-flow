@@ -60,6 +60,7 @@ export default function VoiceMemosPage() {
       let businessCardPath: string | undefined
       let voiceMemoPath: string | undefined
       let combinedContext = ''
+      let rawVoiceMemoText: string | undefined
 
       // First, collect all raw text
       // 1. Business Card OCR
@@ -97,6 +98,7 @@ export default function VoiceMemosPage() {
           console.log('Transcription result:', { success, text, error })
           
           if (success && text) {
+            rawVoiceMemoText = text // Store raw transcription
             combinedContext += `VOICE MEMO:\n${text}\n\n`
             console.log('Updated combined context:', combinedContext)
           } else {
@@ -134,8 +136,7 @@ export default function VoiceMemosPage() {
         // Store the full raw text sections
         rawBusinessCard: combinedContext.includes('BUSINESS CARD:') ? 
           combinedContext.split('BUSINESS CARD:\n')[1].split('\nVOICE MEMO:')[0].split('\nTEXT NOTES:')[0].trim() : undefined,
-        rawVoiceMemo: combinedContext.includes('VOICE MEMO:') ? 
-          combinedContext.split('VOICE MEMO:\n')[1].split('\nTEXT NOTES:')[0].trim() : undefined,
+        rawVoiceMemo: rawVoiceMemoText, // Use the stored raw transcription directly
         rawTextNote: capturedFiles.textNotes || undefined
       }
 
