@@ -4,28 +4,28 @@ import type { StructuredOutput } from "@/types/structured-output-types"
 export function structuredOutputToNewLead(output: StructuredOutput): Omit<NewLead, 'id'> {
   return {
     // Basic Lead Info
-    firstName: output.firstName || null,
-    lastName: output.lastName || null,
-    jobTitle: output.jobTitle || null,
-    company: output.company || null,
-    website: output.website || null,
+    firstName: output.firstName || "N/A",
+    lastName: output.lastName || "N/A",
+    jobTitle: output.jobTitle || "N/A",
+    company: output.company || "N/A",
+    website: output.website || "N/A",
     
     // Contact Info
-    personalEmail: output.personalEmail || null,
-    companyEmail: output.companyEmail || null,
-    personalPhone: output.personalPhone || null,
-    companyPhone: output.companyPhone || null,
-    linkedin: output.linkedin || null,
+    personalEmail: output.personalEmail || "N/A",
+    companyEmail: output.companyEmail || "N/A",
+    personalPhone: output.personalPhone || "N/A",
+    companyPhone: output.companyPhone || "N/A",
+    linkedin: output.linkedin || "N/A",
 
     // Internal enrichment
-    mainInterest: output.mainInterest || null,
-    nextSteps: output.nextSteps || null,
-    notes: output.notes || null,
+    mainInterest: output.mainInterest || "N/A",
+    nextSteps: output.nextSteps || "N/A",
+    notes: output.notes || "N/A",
 
     // External enrichment
-    companyIndustry: output.companyIndustry || null,
-    companySize: output.companySize || null,
-    companyBusiness: output.companyBusiness || null,
+    companyIndustry: output.companyIndustry || "N/A",
+    companySize: output.companySize || "N/A",
+    companyBusiness: output.companyBusiness || "N/A",
 
     // Referrals
     referrals: output.referrals || [],
@@ -36,9 +36,9 @@ export function structuredOutputToNewLead(output: StructuredOutput): Omit<NewLea
     qualificationReason: null,
 
     // Follow-up
-    contactTiming: output.contactTiming || null,
-    contactDate: output.contactDate || null,
-    followUpTemplate: output.followUpTemplate || null,
+    contactTiming: output.contactTiming || "N/A",
+    contactDate: output.contactDate || "N/A",
+    followUpTemplate: output.followUpTemplate || "N/A",
 
     // Source Tracking
     hasBusinessCard: output.hasBusinessCard ?? false,
