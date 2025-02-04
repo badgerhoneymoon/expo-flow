@@ -196,7 +196,7 @@ export default function LeadCapturePage() {
                       onCheckedChange={setIsRussian}
                     />
                     <Label htmlFor="russian-mode" className="text-sm font-medium">
-                      {isRussian ? "Russian" : "English"}
+                      {isRussian ? " Русский" : "English"}
                     </Label>
                   </div>
                   <span role="img" aria-label="Russian flag" className="text-xl">
