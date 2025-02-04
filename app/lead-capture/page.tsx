@@ -86,10 +86,10 @@ export default function VoiceMemosPage() {
       // 2. Voice Memo Transcription
       if (capturedFiles.voiceMemo) {
         try {
-          console.log('Starting voice memo processing')
+          console.log('[Upload] Starting voice memo processing')
           
           voiceMemoPath = await uploadVoiceMemo(capturedFiles.voiceMemo)
-          console.log('Voice memo uploaded:', voiceMemoPath)
+          console.log('[Upload] Voice memo uploaded to storage:', voiceMemoPath)
           
           // Convert Blob to File and create FormData
           const audioFile = new File([capturedFiles.voiceMemo], 'voice-memo.mp3', { type: 'audio/mp3' })
@@ -97,20 +97,20 @@ export default function VoiceMemosPage() {
           formData.append('file', audioFile)
           
           const { success, text, error } = await transcribeVoiceMemo(formData)
-          console.log('Transcription result:', { success, text, error })
+          console.log('[Upload] Transcription result:', { success, text, error })
           
           if (success && text) {
-            console.log('Raw voice memo text before storage:', text)
+            console.log('[Upload] Raw voice memo text before storage:', text)
             rawVoiceMemoText = text // Store raw transcription
-            console.log('Raw voice memo text after storage:', rawVoiceMemoText)
+            console.log('[Upload] Raw voice memo text after storage:', rawVoiceMemoText)
             combinedContext += `VOICE MEMO:\n${text}\n\n`
-            console.log('Updated combined context:', combinedContext)
+            console.log('[Upload] Updated combined context:', combinedContext)
           } else {
-            console.error('Transcription failed:', error)
+            console.error('[Upload] Transcription failed:', error)
           }
         } catch (error) {
-          console.error('Error processing voice memo:', error)
-          console.error('Error details:', {
+          console.error('[Upload] Error processing voice memo:', error)
+          console.error('[Upload] Error details:', {
             name: error instanceof Error ? error.name : 'Unknown',
             message: error instanceof Error ? error.message : String(error)
           })
@@ -123,7 +123,9 @@ export default function VoiceMemosPage() {
       }
 
       // Now process all the text together
+      console.log('[Upload] Processing combined context:', combinedContext)
       const result = await processStructuredData(combinedContext)
+      console.log('[Upload] Structured data result:', result)
 
       if (!result.success || !result.data) {
         throw new Error(result.error || 'Failed to structure data')
@@ -142,7 +144,7 @@ export default function VoiceMemosPage() {
         rawVoiceMemo: rawVoiceMemoText,
         rawTextNote: capturedFiles.textNotes || undefined
       }
-      console.log('Structured data with raw voice memo:', structuredData.rawVoiceMemo)
+      console.log('[Upload] Final structured data with raw voice memo:', structuredData.rawVoiceMemo)
 
       // Create a single lead record
       const createResult = await createCapturedLead({
@@ -151,7 +153,7 @@ export default function VoiceMemosPage() {
         rawTextNote: capturedFiles.textNotes,
         structuredData
       })
-      console.log('Create result:', createResult)
+      console.log('[Upload] Create lead result:', createResult)
       
       if (!createResult.success) {
         throw new Error(createResult.error)

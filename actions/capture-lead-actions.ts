@@ -17,8 +17,12 @@ export async function createCapturedLead(input: CaptureLeadInput) {
       throw new Error("Structured data is required")
     }
 
+    console.log('[CaptureLead] Creating lead with raw voice memo:', input.structuredData.rawVoiceMemo)
+
     // Use the proper lead creation logic from leads-actions
     const result = await createLead(input.structuredData)
+    
+    console.log('[CaptureLead] Create lead result:', result)
     
     if (!result.success) {
       throw new Error(result.error)
@@ -28,7 +32,7 @@ export async function createCapturedLead(input: CaptureLeadInput) {
     return result
     
   } catch (error) {
-    console.error('Failed to create captured lead:', error)
+    console.error('[CaptureLead] Failed to create captured lead:', error)
     return { success: false, error: error instanceof Error ? error.message : "Failed to create lead" }
   }
 } 

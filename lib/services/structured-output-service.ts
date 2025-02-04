@@ -54,7 +54,9 @@ export class StructuredOutputService {
         
         const contentStart = start + marker.length + 2;
         const end = input.indexOf("\n\n", contentStart);
-        return end === -1 ? input.slice(contentStart) : input.slice(contentStart, end);
+        const result = end === -1 ? input.slice(contentStart) : input.slice(contentStart, end);
+        console.log(`[StructuredOutput] Extracted ${marker}:`, result);
+        return result;
       };
 
       // Preserve raw data fields if they exist in the input context
@@ -63,6 +65,8 @@ export class StructuredOutputService {
         rawVoiceMemo: extractSection("VOICE MEMO"),
         rawTextNote: extractSection("TEXT NOTES")
       };
+      
+      console.log('[StructuredOutput] Final raw data:', rawData);
 
       return {
         success: true,

@@ -20,8 +20,11 @@ export async function processVoiceMemo(audioData: FormData): Promise<StructuredO
     }
 
     // Transcribe audio to text
+    console.log('[VoiceMemo] Starting transcription...');
     const { success: transcriptionSuccess, text, error: transcriptionError } = 
       await WhisperService.transcribeAudio(audioFile)
+    
+    console.log('[VoiceMemo] Transcription result:', { success: transcriptionSuccess, text, error: transcriptionError });
     
     if (!transcriptionSuccess || !text) {
       return {
@@ -34,11 +37,13 @@ export async function processVoiceMemo(audioData: FormData): Promise<StructuredO
       new Date().toISOString().split('T')[0]
     )
     
+    console.log('[VoiceMemo] Processing with prompt...');
     const result = await StructuredOutputService.structureText<StructuredOutput>(
       text,
       StructuredOutputSchema,
       prompt
     )
+    console.log('[VoiceMemo] Structured result:', result);
 
     if (result.success && result.data) {
       // Add voice memo specific flags and required fields
@@ -59,6 +64,7 @@ export async function processVoiceMemo(audioData: FormData): Promise<StructuredO
         // Ensure referrals array exists
         referrals: result.data.referrals || []
       }
+      console.log('[VoiceMemo] Enriched data with raw voice memo:', enrichedData.rawVoiceMemo);
 
       return {
         success: true,
@@ -72,7 +78,7 @@ export async function processVoiceMemo(audioData: FormData): Promise<StructuredO
     }
 
   } catch (error) {
-    console.error('Error processing voice memo:', error)
+    console.error('[VoiceMemo] Error processing voice memo:', error)
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Failed to process voice memo'

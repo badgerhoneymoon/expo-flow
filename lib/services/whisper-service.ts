@@ -13,6 +13,7 @@ export interface WhisperTranscriptionResponse {
 export class WhisperService {
   static async transcribeAudio(audioFile: File): Promise<WhisperTranscriptionResponse> {
     try {
+      console.log('[Whisper] Starting transcription...');
       const formData = new FormData();
       formData.append('file', audioFile);
       
@@ -23,12 +24,14 @@ export class WhisperService {
         response_format: "text",
       });
 
+      console.log('[Whisper] Raw transcription result:', transcription);
+      
       return {
         success: true,
         text: transcription,
       };
     } catch (error) {
-      console.error("Whisper API Error:", error);
+      console.error("[Whisper] API Error:", error);
       return {
         success: false,
         error: error instanceof Error ? error.message : "Failed to transcribe audio",
