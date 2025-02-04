@@ -93,7 +93,10 @@ export default function LeadCapturePage() {
           console.log('[Upload] Starting voice memo processing')
           voiceMemoPath = await uploadVoiceMemo(capturedFiles.voiceMemo)
           
-          const audioFile = new File([capturedFiles.voiceMemo], 'voice-memo.mp3', { type: 'audio/mp3' })
+          // Use the blob's type instead of forcing MP3
+          const audioFile = new File([capturedFiles.voiceMemo], 'voice-memo', { 
+            type: capturedFiles.voiceMemo.type || 'audio/webm' 
+          })
           const formData = new FormData()
           formData.append('file', audioFile)
           

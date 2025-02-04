@@ -39,7 +39,8 @@ export default function VoiceRecorder({ onCapture }: VoiceRecorderProps) {
         }
 
         mediaRecorderRef.current.onstop = () => {
-          const blob = new Blob(chunksRef.current, { type: 'audio/mp3' })
+          // Use the default browser audio format
+          const blob = new Blob(chunksRef.current)
           const url = URL.createObjectURL(blob)
           setAudioUrl(url)
 
