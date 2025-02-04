@@ -18,6 +18,9 @@ import { processStructuredData } from "@/actions/process-structured-data"
 import { transcribeVoiceMemo } from "@/actions/process-voice-memo"
 import { extractTextFromImage } from '@/actions/vision-actions'
 
+// Set route segment config
+export const maxDuration = 60 // 60 seconds timeout
+
 // Dynamically import VoiceRecorder with no SSR
 const VoiceRecorder = dynamic(
   () => import('@/app/_components/voice-recorder'),
