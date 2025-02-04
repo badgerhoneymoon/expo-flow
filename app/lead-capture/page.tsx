@@ -17,6 +17,9 @@ import type { StructuredOutput } from '@/types/structured-output-types'
 import { processStructuredData } from "@/actions/process-structured-data"
 import { transcribeVoiceMemo } from "@/actions/process-voice-memo"
 import { extractTextFromImage } from '@/actions/vision-actions'
+import { Switch } from "@/components/ui/switch"
+import { Label } from "@/components/ui/label"
+import { Card } from "@/components/ui/card"
 
 // Set route segment config
 export const maxDuration = 60 // 60 seconds timeout
@@ -33,11 +36,12 @@ interface CapturedFiles {
   textNotes?: string
 }
 
-export default function LeadCapturePage() {  // Renamed for clarity
+export default function LeadCapturePage() {
   const [capturedFiles, setCapturedFiles] = useState<CapturedFiles>({})
   const [isUploading, setIsUploading] = useState(false)
   const [key, setKey] = useState(0)
   const [leads, setLeads] = useState<Lead[]>([])
+  const [isRussian, setIsRussian] = useState(false)
 
   // Fetch leads on mount and after successful upload
   const fetchLeads = async () => {
@@ -93,7 +97,7 @@ export default function LeadCapturePage() {  // Renamed for clarity
           const formData = new FormData()
           formData.append('file', audioFile)
           
-          const { success, text, error } = await transcribeVoiceMemo(formData)
+          const { success, text, error } = await transcribeVoiceMemo(formData, isRussian ? "ru" : "en")
           
           if (success && text) {
             rawVoiceMemoText = text
@@ -178,10 +182,33 @@ export default function LeadCapturePage() {  // Renamed for clarity
               key={`photo-${key}`}
               onCapture={(file) => setCapturedFiles(prev => ({ ...prev, businessCard: file }))} 
             />
-            <VoiceRecorder 
-              key={`voice-${key}`}
-              onCapture={(blob) => setCapturedFiles(prev => ({ ...prev, voiceMemo: blob }))} 
-            />
+
+            <div className="space-y-4">
+              <Card className="p-6">
+                <div className="flex items-center justify-center space-x-4 mb-4">
+                  <span role="img" aria-label="US flag" className="text-xl">
+                    🇺🇸
+                  </span>
+                  <div className="flex items-center space-x-2">
+                    <Switch
+                      id="russian-mode"
+                      checked={isRussian}
+                      onCheckedChange={setIsRussian}
+                    />
+                    <Label htmlFor="russian-mode" className="text-sm font-medium">
+                      {isRussian ? "Russian" : "English"}
+                    </Label>
+                  </div>
+                  <span role="img" aria-label="Russian flag" className="text-xl">
+                    🇷🇺
+                  </span>
+                </div>
+                <VoiceRecorder 
+                  key={`voice-${key}`}
+                  onCapture={(blob) => setCapturedFiles(prev => ({ ...prev, voiceMemo: blob }))} 
+                />
+              </Card>
+            </div>
             
             <div className="space-y-2">
               <label className="text-sm font-medium text-muted-foreground">

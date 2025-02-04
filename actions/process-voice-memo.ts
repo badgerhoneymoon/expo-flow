@@ -9,7 +9,7 @@ import { WhisperService } from "@/lib/services/whisper-service"
 import { StructuredOutputService } from "@/lib/services/structured-output-service"
 import { getStructuredOutputPrompt } from '@/lib/prompts/structured-output-prompt'
 
-export async function processVoiceMemo(audioData: FormData): Promise<StructuredOutputResponse> {
+export async function processVoiceMemo(audioData: FormData, language?: string): Promise<StructuredOutputResponse> {
   try {
     const audioFile = audioData.get('file') as File
     if (!audioFile) {
@@ -21,7 +21,7 @@ export async function processVoiceMemo(audioData: FormData): Promise<StructuredO
 
     // Transcribe audio to text
     const { success: transcriptionSuccess, text, error: transcriptionError } = 
-      await WhisperService.transcribeAudio(audioFile)
+      await WhisperService.transcribeAudio(audioFile, language)
     
     if (!transcriptionSuccess || !text) {
       return {
@@ -80,7 +80,7 @@ export async function processVoiceMemo(audioData: FormData): Promise<StructuredO
   }
 }
 
-export async function transcribeVoiceMemo(audioData: FormData) {
+export async function transcribeVoiceMemo(audioData: FormData, language?: string) {
   try {
     const audioFile = audioData.get('file') as File
     if (!audioFile) {
@@ -90,7 +90,7 @@ export async function transcribeVoiceMemo(audioData: FormData) {
       }
     }
     
-    const result = await WhisperService.transcribeAudio(audioFile)
+    const result = await WhisperService.transcribeAudio(audioFile, language)
     return result
   } catch (error) {
     console.error('Error transcribing voice memo:', error)

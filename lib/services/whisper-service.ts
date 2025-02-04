@@ -11,7 +11,7 @@ export interface WhisperTranscriptionResponse {
 }
 
 export class WhisperService {
-  static async transcribeAudio(audioFile: File): Promise<WhisperTranscriptionResponse> {
+  static async transcribeAudio(audioFile: File, language?: string): Promise<WhisperTranscriptionResponse> {
     try {
       console.log('[Whisper] Starting transcription...');
       const formData = new FormData();
@@ -20,7 +20,7 @@ export class WhisperService {
       const transcription = await openai.audio.transcriptions.create({
         file: audioFile,
         model: "whisper-1",
-        language: "en",
+        language: language || "en",
         response_format: "text",
       });
 
