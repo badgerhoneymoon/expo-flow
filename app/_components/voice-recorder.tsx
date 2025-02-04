@@ -168,9 +168,8 @@ export default function VoiceRecorder({ onCapture }: VoiceRecorderProps) {
         setTimer(t => t + 1)
       }, 1000)
       
-      // Use different timeslice for mobile
-      const timeslice = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ? 1000 : 10000
-      mediaRecorderRef.current.start(timeslice)
+      // Use consistent 10 second timeslice
+      mediaRecorderRef.current.start(10000)
       
       setIsRecording(true)
       setAudioUrl(null)
