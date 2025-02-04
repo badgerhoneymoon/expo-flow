@@ -120,7 +120,7 @@ export default function PhotoCapture({ onCapture }: PhotoCaptureProps) {
                   >
                     <span>
                       <ImagePlus className="w-6 h-6" />
-                      <span className="text-sm font-medium">Choose from Gallery</span>
+                      <span className="text-sm font-medium">Gallery</span>
                     </span>
                   </Button>
                 </div>
