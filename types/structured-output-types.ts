@@ -12,6 +12,18 @@ export const ReferralSchema = z.object({
 
 export type Referral = z.infer<typeof ReferralSchema>
 
+// Raw data schema to ensure preservation
+export const RawDataSchema = z.object({
+  rawBusinessCard: z.string().optional(),
+  rawTextNote: z.string().optional(),
+  rawVoiceMemo: z.string().optional(),
+  businessCardPath: z.string().optional(),
+  voiceMemoPath: z.string().optional(),
+  hasBusinessCard: z.boolean().optional(),
+  hasTextNote: z.boolean().optional(),
+  hasVoiceMemo: z.boolean().optional()
+})
+
 // This is our Zod schema for OpenAI's structured output
 export const StructuredOutputSchema = z.object({
   // Basic Lead Info
@@ -45,19 +57,9 @@ export const StructuredOutputSchema = z.object({
   contactTiming: z.string().optional(),
   contactDate: z.string().optional(),
   followUpTemplate: z.string().optional()
-})
+}).merge(RawDataSchema)
 
-export type StructuredOutput = z.infer<typeof StructuredOutputSchema> & {
-  // Add our application-specific fields here
-  hasBusinessCard?: boolean
-  hasTextNote?: boolean
-  hasVoiceMemo?: boolean
-  rawBusinessCard?: string
-  rawTextNote?: string
-  rawVoiceMemo?: string
-  businessCardPath?: string
-  voiceMemoPath?: string
-}
+export type StructuredOutput = z.infer<typeof StructuredOutputSchema>
 
 export interface StructuredOutputResponse {
   success: boolean

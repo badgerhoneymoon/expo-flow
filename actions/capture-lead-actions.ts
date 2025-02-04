@@ -1,9 +1,8 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
-import * as queries from "@/db/queries/leads-queries"
-import { StructuredOutput } from "@/types/structured-output-types"
-import { targetStatusEnum, icpFitStatusEnum } from "@/db/schema/leads-schema"
+import { createLead } from "@/actions/leads-actions"
+import type { StructuredOutput } from "@/types/structured-output-types"
 
 interface CaptureLeadInput {
   businessCardPath?: string
@@ -14,35 +13,22 @@ interface CaptureLeadInput {
 
 export async function createCapturedLead(input: CaptureLeadInput) {
   try {
-    // Create a lead record with structured data if available, otherwise use minimal data
-    const leadData: StructuredOutput = input.structuredData || {
-      firstName: "N/A",
-      lastName: "N/A",
-      nextSteps: "Process captured files",
-      notes: "Lead created from captured files",
-      hasBusinessCard: !!input.businessCardPath,
-      hasVoiceMemo: !!input.voiceMemoPath,
-      hasTextNote: !!input.rawTextNote,
-      businessCardPath: input.businessCardPath,
-      voiceMemoPath: input.voiceMemoPath,
-      rawTextNote: input.rawTextNote,
-      referrals: []
+    if (!input.structuredData) {
+      throw new Error("Structured data is required")
     }
 
-    // Create new lead with default qualification values
-    const newLeadData = {
-      ...leadData,
-      isTarget: targetStatusEnum.enumValues[2], // UNKNOWN
-      icpFit: icpFitStatusEnum.enumValues[2], // UNKNOWN
-      qualificationReason: null
-    }
-
-    const lead = await queries.createLead(newLeadData)
-    revalidatePath("/leads")
+    // Use the proper lead creation logic from leads-actions
+    const result = await createLead(input.structuredData)
     
-    return { success: true, data: lead }
+    if (!result.success) {
+      throw new Error(result.error)
+    }
+
+    revalidatePath("/leads")
+    return result
+    
   } catch (error) {
     console.error('Failed to create captured lead:', error)
-    return { success: false, error: "Failed to create lead" }
+    return { success: false, error: error instanceof Error ? error.message : "Failed to create lead" }
   }
 } 

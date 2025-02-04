@@ -100,7 +100,9 @@ export default function VoiceMemosPage() {
           console.log('Transcription result:', { success, text, error })
           
           if (success && text) {
+            console.log('Raw voice memo text before storage:', text)
             rawVoiceMemoText = text // Store raw transcription
+            console.log('Raw voice memo text after storage:', rawVoiceMemoText)
             combinedContext += `VOICE MEMO:\n${text}\n\n`
             console.log('Updated combined context:', combinedContext)
           } else {
@@ -136,10 +138,11 @@ export default function VoiceMemosPage() {
         businessCardPath,
         voiceMemoPath,
         // Store the full raw text sections
-        rawBusinessCard: rawBusinessCardText, // Use the stored raw OCR text directly
+        rawBusinessCard: rawBusinessCardText,
         rawVoiceMemo: rawVoiceMemoText,
         rawTextNote: capturedFiles.textNotes || undefined
       }
+      console.log('Structured data with raw voice memo:', structuredData.rawVoiceMemo)
 
       // Create a single lead record
       const createResult = await createCapturedLead({
@@ -148,6 +151,7 @@ export default function VoiceMemosPage() {
         rawTextNote: capturedFiles.textNotes,
         structuredData
       })
+      console.log('Create result:', createResult)
       
       if (!createResult.success) {
         throw new Error(createResult.error)

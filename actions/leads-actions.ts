@@ -32,6 +32,8 @@ export async function getLead(id: string) {
 
 export async function createLead(structuredOutput: StructuredOutput) {
   try {
+    console.log('Creating lead with raw voice memo:', structuredOutput.rawVoiceMemo)
+    
     // Check for existing lead
     const existingLead = await queries.findLeadByNameAndCompany(
       structuredOutput.firstName || "",
@@ -42,6 +44,7 @@ export async function createLead(structuredOutput: StructuredOutput) {
     let updatedOrNewLead;
 
     if (existingLead) {
+      console.log('Updating existing lead with raw voice memo:', structuredOutput.rawVoiceMemo)
       // Merge with existing lead data, preserving existing values unless new data is provided
       const updatedData = {
         ...existingLead,
@@ -91,9 +94,11 @@ export async function createLead(structuredOutput: StructuredOutput) {
           )
         )
       }
+      console.log('Updated data with raw voice memo:', updatedData.rawVoiceMemo)
       
       updatedOrNewLead = await queries.updateLead(existingLead.id, updatedData)
     } else {
+      console.log('Creating new lead with raw voice memo:', structuredOutput.rawVoiceMemo)
       // Create new lead with default qualification values
       const newLeadData = {
         ...structuredOutputToNewLead(structuredOutput),
@@ -101,9 +106,12 @@ export async function createLead(structuredOutput: StructuredOutput) {
         icpFit: icpFitStatusEnum.enumValues[2],
         qualificationReason: null
       }
+      console.log('New lead data with raw voice memo:', newLeadData.rawVoiceMemo)
+      
       updatedOrNewLead = await queries.createLead(newLeadData)
     }
 
+    console.log('Final lead with raw voice memo:', updatedOrNewLead.rawVoiceMemo)
     revalidatePath("/leads")
     return { success: true, data: updatedOrNewLead }
 

@@ -47,11 +47,28 @@ export class StructuredOutputService {
         };
       }
 
+      // Extract raw data sections using string manipulation instead of regex
+      const extractSection = (marker: string) => {
+        const start = input.indexOf(marker + ":\n");
+        if (start === -1) return undefined;
+        
+        const contentStart = start + marker.length + 2;
+        const end = input.indexOf("\n\n", contentStart);
+        return end === -1 ? input.slice(contentStart) : input.slice(contentStart, end);
+      };
+
+      // Preserve raw data fields if they exist in the input context
+      const rawData = {
+        rawBusinessCard: extractSection("BUSINESS CARD"),
+        rawVoiceMemo: extractSection("VOICE MEMO"),
+        rawTextNote: extractSection("TEXT NOTES")
+      };
+
       return {
         success: true,
         data: {
           ...parsedData,
-          rawInput: input
+          ...rawData
         } as T
       };
 

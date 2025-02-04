@@ -54,10 +54,12 @@ export async function findLeadByNameAndCompany(
 
 export async function createLead(lead: NewLead): Promise<Lead> {
   try {
+    console.log('Creating lead in DB with raw voice memo:', lead.rawVoiceMemo)
     const [newLead] = await db
       .insert(leads)
       .values(lead)
       .returning()
+    console.log('Created lead in DB with raw voice memo:', newLead.rawVoiceMemo)
     return { ...newLead, referrals: (newLead.referrals || []) as ReferralData[] }
   } catch (error) {
     console.error("Error creating lead:", error)
@@ -67,7 +69,7 @@ export async function createLead(lead: NewLead): Promise<Lead> {
 
 export async function updateLead(id: string, lead: Partial<NewLead>): Promise<Lead> {
   try {
-    console.log(`[DB Update] Updating lead ${id} with data:`, lead);
+    console.log(`[DB Update] Updating lead ${id} with raw voice memo:`, lead.rawVoiceMemo);
     
     const [updatedLead] = await db
       .update(leads)
@@ -75,7 +77,7 @@ export async function updateLead(id: string, lead: Partial<NewLead>): Promise<Le
       .where(eq(leads.id, id))
       .returning()
     
-    console.log(`[DB Update] Update result:`, updatedLead);
+    console.log(`[DB Update] Updated lead with raw voice memo:`, updatedLead.rawVoiceMemo);
     return { ...updatedLead, referrals: (updatedLead.referrals || []) as ReferralData[] };
   } catch (error) {
     console.error("[DB Update] Error updating lead:", error);
