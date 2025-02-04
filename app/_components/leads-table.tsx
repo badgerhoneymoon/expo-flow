@@ -555,11 +555,6 @@ export default function LeadsTable({
                         </div>
                         <div className="text-sm text-muted-foreground">
                           {lead.jobTitle && lead.jobTitle !== "N/A" ? lead.jobTitle : '—'}
-                          {lead.eventName && (
-                            <span className="ml-2 text-xs">
-                              ({lead.eventName})
-                            </span>
-                          )}
                         </div>
                       </div>
                       <div className={cn(
