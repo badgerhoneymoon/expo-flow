@@ -61,6 +61,7 @@ export default function VoiceMemosPage() {
       let voiceMemoPath: string | undefined
       let combinedContext = ''
       let rawVoiceMemoText: string | undefined
+      let rawBusinessCardText: string | undefined
 
       // First, collect all raw text
       // 1. Business Card OCR
@@ -74,6 +75,7 @@ export default function VoiceMemosPage() {
           
           const visionResult = await extractTextFromImage(formData)
           if (visionResult.success && visionResult.text) {
+            rawBusinessCardText = visionResult.text // Store raw OCR text
             combinedContext += `BUSINESS CARD:\n${visionResult.text}\n\n`
           }
         } catch (error) {
@@ -134,9 +136,8 @@ export default function VoiceMemosPage() {
         businessCardPath,
         voiceMemoPath,
         // Store the full raw text sections
-        rawBusinessCard: combinedContext.includes('BUSINESS CARD:') ? 
-          combinedContext.split('BUSINESS CARD:\n')[1].split('\nVOICE MEMO:')[0].split('\nTEXT NOTES:')[0].trim() : undefined,
-        rawVoiceMemo: rawVoiceMemoText, // Use the stored raw transcription directly
+        rawBusinessCard: rawBusinessCardText, // Use the stored raw OCR text directly
+        rawVoiceMemo: rawVoiceMemoText,
         rawTextNote: capturedFiles.textNotes || undefined
       }
 
