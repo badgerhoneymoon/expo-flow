@@ -50,7 +50,14 @@ export default function VoiceRecorder({ onCapture }: VoiceRecorderProps) {
 
   useEffect(() => {
     // Request microphone access on mount
-    navigator.mediaDevices.getUserMedia({ audio: true })
+    navigator.mediaDevices.getUserMedia({ 
+      audio: {
+        channelCount: 1,        // Mono audio
+        sampleRate: 44100,      // Standard sample rate
+        echoCancellation: true, // Enable echo cancellation
+        noiseSuppression: true  // Enable noise suppression
+      } 
+    })
       .then(stream => {
         // Log available MIME types
         const supportedTypes = [
@@ -66,17 +73,20 @@ export default function VoiceRecorder({ onCapture }: VoiceRecorderProps) {
           userAgent: navigator.userAgent
         })
 
-        // Try to use a supported MIME type
+        // Try to use a supported MIME type with specific configuration
         const options = {
-          mimeType: supportedTypes[0] || 'audio/webm'
+          mimeType: supportedTypes[0] || 'audio/webm',
+          audioBitsPerSecond: 128000,  // 128 kbps
         }
         
         sendLogToServer('recorder-config', {
-          selectedMimeType: options.mimeType
+          selectedMimeType: options.mimeType,
+          config: options
         })
 
         mediaRecorderRef.current = new MediaRecorder(stream, options)
         
+        // Request data more frequently on mobile
         mediaRecorderRef.current.ondataavailable = (e) => {
           const chunkInfo = {
             size: e.data.size,
@@ -88,7 +98,7 @@ export default function VoiceRecorder({ onCapture }: VoiceRecorderProps) {
 
         mediaRecorderRef.current.onstop = () => {
           const blob = new Blob(chunksRef.current, { 
-            type: mediaRecorderRef.current?.mimeType || 'audio/mp3'
+            type: mediaRecorderRef.current?.mimeType
           })
 
           if (startTimeRef.current) {
@@ -157,7 +167,11 @@ export default function VoiceRecorder({ onCapture }: VoiceRecorderProps) {
       timerRef.current = setInterval(() => {
         setTimer(t => t + 1)
       }, 1000)
-      mediaRecorderRef.current.start()
+      
+      // Use different timeslice for mobile
+      const timeslice = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ? 1000 : 10000
+      mediaRecorderRef.current.start(timeslice)
+      
       setIsRecording(true)
       setAudioUrl(null)
       setStats(null)
