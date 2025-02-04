@@ -10,6 +10,9 @@ export function structuredOutputToNewLead(output: StructuredOutput): Omit<NewLea
     company: output.company || "N/A",
     website: output.website || "N/A",
     
+    // Event Info
+    eventName: output.eventName || "N/A",
+    
     // Contact Info
     personalEmail: output.personalEmail || "N/A",
     companyEmail: output.companyEmail || "N/A",

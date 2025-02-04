@@ -25,6 +25,7 @@ import { mockEnrichLinkedInProfiles } from "@/lib/services/mock-linkedin-service
 import { updateLeadsLinkedIn } from "@/actions/leads-actions"
 import { generateFollowUps } from "@/actions/follow-up-actions"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 // Modified LinkCell component to handle emails specially
 function LinkCell({ url, icon: Icon, isEmail = false }: { url: string | null, icon: any, isEmail?: boolean }) {
@@ -438,14 +439,19 @@ export default function LeadsTable({
   showQualificationStats = true 
 }: LeadsTableProps) {
   const [showQualifiedOnly, setShowQualifiedOnly] = useState(false)
+  const [selectedEvent, setSelectedEvent] = useState<string>('all')
   const [expandedLead, setExpandedLead] = useState<string | undefined>(undefined)
   
-  const filteredLeads = showQualifiedOnly 
-    ? leads.filter(lead => 
-        lead.isTarget === targetStatusEnum.enumValues[0] && 
-        lead.icpFit === icpFitStatusEnum.enumValues[0]
-      )
-    : leads
+  // Get unique event names
+  const eventNames = Array.from(new Set(leads.map(lead => lead.eventName).filter(Boolean)))
+  
+  // Filter leads by event and qualification
+  const filteredLeads = leads
+    .filter(lead => selectedEvent === 'all' || lead.eventName === selectedEvent)
+    .filter(lead => !showQualifiedOnly || (
+      lead.isTarget === targetStatusEnum.enumValues[0] && 
+      lead.icpFit === icpFitStatusEnum.enumValues[0]
+    ))
 
   return (
     <Card className="max-w-2xl mx-auto">
@@ -455,7 +461,7 @@ export default function LeadsTable({
           <div className="flex flex-col items-center">
             <div className="text-xs text-muted-foreground">Total</div>
             <Badge variant="outline" className="min-w-[3rem] justify-center text-base font-semibold">
-              {leads.length}
+              {filteredLeads.length}
             </Badge>
           </div>
         </div>
@@ -470,12 +476,32 @@ export default function LeadsTable({
         )}
 
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mt-4">
-          {showQualificationFilter && (
-            <FilterSwitch 
-              checked={showQualifiedOnly}
-              onCheckedChange={setShowQualifiedOnly}
-            />
-          )}
+          <div className="flex flex-col sm:flex-row gap-4">
+            {/* Add event filter */}
+            {eventNames.length > 0 && (
+              <Select value={selectedEvent} onValueChange={setSelectedEvent}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Filter by event" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Events</SelectItem>
+                  {eventNames.map(eventName => eventName && (
+                    <SelectItem key={eventName} value={eventName}>
+                      {eventName}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+            
+            {showQualificationFilter && (
+              <FilterSwitch 
+                checked={showQualifiedOnly}
+                onCheckedChange={setShowQualifiedOnly}
+              />
+            )}
+          </div>
+
           {showQualificationStats && (
             <div className="flex items-center gap-4">
               <div className="flex flex-col items-center gap-1">
@@ -529,6 +555,11 @@ export default function LeadsTable({
                         </div>
                         <div className="text-sm text-muted-foreground">
                           {lead.jobTitle && lead.jobTitle !== "N/A" ? lead.jobTitle : '—'}
+                          {lead.eventName && (
+                            <span className="ml-2 text-xs">
+                              ({lead.eventName})
+                            </span>
+                          )}
                         </div>
                       </div>
                       <div className={cn(

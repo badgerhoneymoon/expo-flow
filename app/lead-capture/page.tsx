@@ -6,6 +6,7 @@ import PhotoCapture from "@/app/_components/photo-capture"
 import LeadsTable from "@/app/_components/leads-table"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
+import { Input } from "@/components/ui/input"
 import { useState, useEffect } from "react"
 import { Upload, Loader2 } from "lucide-react"
 import { toast } from "sonner"
@@ -42,6 +43,7 @@ export default function LeadCapturePage() {
   const [key, setKey] = useState(0)
   const [leads, setLeads] = useState<Lead[]>([])
   const [isRussian, setIsRussian] = useState(false)
+  const [eventName, setEventName] = useState("")
 
   // Fetch leads on mount and after successful upload
   const fetchLeads = async () => {
@@ -56,6 +58,11 @@ export default function LeadCapturePage() {
   }, [])
 
   const handleUpload = async () => {
+    if (!eventName.trim()) {
+      toast.error('Please enter an event name')
+      return
+    }
+
     if (!capturedFiles.businessCard && !capturedFiles.voiceMemo && !capturedFiles.textNotes) {
       toast.error('Please capture at least one item')
       return
@@ -124,6 +131,7 @@ export default function LeadCapturePage() {
       // Create structured output
       const structuredData: StructuredOutput = {
         ...result.data,
+        eventName,
         hasBusinessCard: !!businessCardPath,
         hasVoiceMemo: !!voiceMemoPath,
         hasTextNote: !!capturedFiles.textNotes,
@@ -178,6 +186,19 @@ export default function LeadCapturePage() {
           </div>
           
           <div className="space-y-8">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-muted-foreground">
+                Event Name *
+              </label>
+              <Input
+                placeholder="Enter the trade show or event name..."
+                value={eventName}
+                onChange={(e) => setEventName(e.target.value)}
+                className="w-full"
+                required
+              />
+            </div>
+
             <PhotoCapture 
               key={`photo-${key}`}
               onCapture={(file) => setCapturedFiles(prev => ({ ...prev, businessCard: file }))} 
