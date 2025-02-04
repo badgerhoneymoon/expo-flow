@@ -39,9 +39,9 @@ export default function VoiceRecorder({ onCapture }: VoiceRecorderProps) {
         }
 
         mediaRecorderRef.current.onstop = () => {
-          const blob = new Blob(chunksRef.current, { type: 'audio/mp3' })
-          const url = URL.createObjectURL(blob)
-          setAudioUrl(url)
+          const blob = new Blob(chunksRef.current, { 
+            type: mediaRecorderRef.current?.mimeType || 'audio/mp3'
+          })
 
           if (startTimeRef.current) {
             const duration = (Date.now() - startTimeRef.current) / 1000
@@ -50,8 +50,18 @@ export default function VoiceRecorder({ onCapture }: VoiceRecorderProps) {
               duration,
               bitrate: (blob.size * 8) / (duration * 1000)
             })
+
+            console.log('Recorded file details:', {
+              size: blob.size, 
+              type: blob.type,
+              duration: duration
+            })
+
             onCapture(blob)
           }
+
+          const url = URL.createObjectURL(blob)
+          setAudioUrl(url)
 
           chunksRef.current = []
         }
