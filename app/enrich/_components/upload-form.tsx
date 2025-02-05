@@ -3,7 +3,6 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Progress } from "@/components/ui/progress"
 import { ImagePlus, FileText, Mic, Check, Sparkles } from 'lucide-react'
 import { extractBusinessCard } from '@/actions/extract-business-card'
 import { extractTextFromImage } from '@/actions/vision-actions'
@@ -11,8 +10,8 @@ import { processVoiceMemo } from '@/actions/process-voice-memo'
 import { processTextNotes } from '@/actions/process-text-notes'
 import { RainbowButton } from "@/components/ui/rainbow-button"
 import { cn } from "@/lib/utils"
-import { motion } from 'framer-motion'
 import { UploadProgress } from "./upload-progress"
+import { motion } from "framer-motion"
 
 interface FileUpload {
   file: File
@@ -213,16 +212,27 @@ export default function UploadForm() {
         </div>
 
         {files.length > 0 && (
-          <div className="space-y-4 max-w-lg mx-auto">
+          <motion.div 
+            className="space-y-4 max-w-lg mx-auto"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
             {files.map((file, index) => (
-              <UploadProgress
+              <motion.div
                 key={index}
-                fileName={file.file.name}
-                progress={file.progress}
-                status={file.progress === 100 ? "complete" : "uploading"}
-              />
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: index * 0.1 }}
+              >
+                <UploadProgress
+                  fileName={file.file.name}
+                  progress={file.progress}
+                  status={file.progress === 100 ? "complete" : "uploading"}
+                />
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         )}
 
         <div className="flex justify-center">

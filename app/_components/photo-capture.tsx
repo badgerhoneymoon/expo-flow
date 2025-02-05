@@ -75,6 +75,7 @@ export default function PhotoCapture({ onCapture }: PhotoCaptureProps) {
                   capture="environment"
                   className="hidden"
                   onChange={handleFileSelect}
+                  id="camera-input"
                 />
                 <div className={cn(
                   "p-4 rounded-2xl transition-colors duration-200 h-full",
@@ -87,12 +88,11 @@ export default function PhotoCapture({ onCapture }: PhotoCaptureProps) {
                       "h-full w-full rounded-xl transition-all duration-300 hover:scale-105",
                       "bg-emerald-500 hover:bg-emerald-600 text-white flex flex-col items-center justify-center gap-2 py-4"
                     )}
-                    asChild
+                    onClick={() => document.getElementById('camera-input')?.click()}
+                    type="button"
                   >
-                    <span>
-                      <Camera className="w-6 h-6" />
-                      <span className="text-sm font-medium">Take Photo</span>
-                    </span>
+                    <Camera className="w-6 h-6" />
+                    <span className="text-sm font-medium">Take Photo</span>
                   </Button>
                 </div>
               </label>
@@ -104,6 +104,7 @@ export default function PhotoCapture({ onCapture }: PhotoCaptureProps) {
                   accept="image/*"
                   className="hidden"
                   onChange={handleFileSelect}
+                  id="gallery-input"
                 />
                 <div className={cn(
                   "p-4 rounded-2xl transition-colors duration-200 h-full",
@@ -116,12 +117,11 @@ export default function PhotoCapture({ onCapture }: PhotoCaptureProps) {
                       "h-full w-full rounded-xl transition-all duration-300 hover:scale-105",
                       "bg-blue-500 hover:bg-blue-600 text-white flex flex-col items-center justify-center gap-2 py-4"
                     )}
-                    asChild
+                    onClick={() => document.getElementById('gallery-input')?.click()}
+                    type="button"
                   >
-                    <span>
-                      <ImagePlus className="w-6 h-6" />
-                      <span className="text-sm font-medium">Gallery</span>
-                    </span>
+                    <ImagePlus className="w-6 h-6" />
+                    <span className="text-sm font-medium">Gallery</span>
                   </Button>
                 </div>
               </label>

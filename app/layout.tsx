@@ -23,25 +23,7 @@ export default function RootLayout({
           <div className="container mx-auto px-4 py-4">
             <div className="flex gap-4">
               <Link 
-                href="/company-profile" 
-                className="text-sm font-medium hover:text-primary"
-              >
-                Company Profile
-              </Link>
-              <Link 
                 href="/" 
-                className="text-sm font-medium hover:text-primary"
-              >
-                Upload
-              </Link>
-              <Link 
-                href="/leads" 
-                className="text-sm font-medium hover:text-primary"
-              >
-                Leads
-              </Link>
-              <Link 
-                href="/lead-capture" 
                 className="text-sm font-medium hover:text-primary"
               >
                 Lead Capture
