@@ -274,9 +274,10 @@ export default function LeadCapturePage() {
           <div>
             <LeadsTable 
               leads={leads} 
-              showActions={false}
+              showActions={true}
               showQualificationFilter={false}
               showQualificationStats={false}
+              allowedActions={['export']}
             />
           </div>
         )}

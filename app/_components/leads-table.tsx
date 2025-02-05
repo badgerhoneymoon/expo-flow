@@ -11,7 +11,7 @@ import {
 import { targetStatusEnum, icpFitStatusEnum } from "@/db/schema/leads-schema"
 import { Badge } from "@/components/ui/badge"
 import { motion } from "framer-motion"
-import { Mail, Linkedin, Globe, Calendar, Calculator, MessageSquare } from "lucide-react"
+import { Mail, Linkedin, Globe, Calendar, Calculator, MessageSquare, Download } from "lucide-react"
 import { findMissingWebsites } from "@/actions/leads-actions"
 import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
@@ -26,6 +26,7 @@ import { updateLeadsLinkedIn } from "@/actions/leads-actions"
 import { generateFollowUps } from "@/actions/follow-up-actions"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { exportFilteredLeadsToCSV } from "@/actions/leads-actions"
 
 // Modified LinkCell component to handle emails specially
 function LinkCell({ url, icon: Icon, isEmail = false }: { url: string | null, icon: any, isEmail?: boolean }) {
@@ -425,18 +426,80 @@ function parseQualificationReason(reason: string | null, type: 'target' | 'icp')
   return type === 'target' ? targetSection : icpSection;
 }
 
+// Update ExportButton component
+function ExportButton({ 
+  eventName,
+  qualifiedOnly,
+  totalLeads
+}: { 
+  eventName: string;
+  qualifiedOnly: boolean;
+  totalLeads: number;
+}) {
+  const handleExport = async () => {
+    try {
+      const result = await exportFilteredLeadsToCSV({
+        eventName: eventName === 'all' ? undefined : eventName,
+        qualifiedOnly
+      })
+      
+      if (result.success && result.data) {
+        // Create blob and download
+        const blob = new Blob([result.data], { type: 'text/csv;charset=utf-8;' })
+        const link = document.createElement('a')
+        if (link.download !== undefined) {
+          const url = URL.createObjectURL(blob)
+          const fileName = `leads-${eventName !== 'all' ? `${eventName}-` : ''}${qualifiedOnly ? 'qualified-' : ''}${new Date().toISOString().split('T')[0]}.csv`
+          link.setAttribute('href', url)
+          link.setAttribute('download', fileName)
+          link.style.visibility = 'hidden'
+          document.body.appendChild(link)
+          link.click()
+          document.body.removeChild(link)
+        }
+        
+        toast.success("Export Complete", {
+          description: `Successfully exported ${totalLeads} leads${eventName !== 'all' ? ` from ${eventName}` : ''}${qualifiedOnly ? ' (qualified only)' : ''}`
+        })
+      } else {
+        toast.error("Export Failed", {
+          description: result.error || "Failed to export leads"
+        })
+      }
+    } catch (error) {
+      toast.error("Export Failed", {
+        description: "An error occurred while exporting"
+      })
+    }
+  }
+
+  return (
+    <Button
+      variant="outline"
+      size="sm"
+      onClick={handleExport}
+      className="gap-2 hover:border-gray-500/50 hover:bg-gray-500/10 hover:text-gray-500"
+    >
+      <Download className="h-4 w-4" />
+      Export {totalLeads} {totalLeads === 1 ? 'Lead' : 'Leads'}
+    </Button>
+  )
+}
+
 interface LeadsTableProps {
   leads: Lead[]
   showActions?: boolean
   showQualificationFilter?: boolean
   showQualificationStats?: boolean
+  allowedActions?: ('export' | 'enrich' | 'score' | 'websites' | 'followup')[]
 }
 
 export default function LeadsTable({ 
   leads, 
   showActions = true,
   showQualificationFilter = true,
-  showQualificationStats = true 
+  showQualificationStats = true,
+  allowedActions
 }: LeadsTableProps) {
   const [showQualifiedOnly, setShowQualifiedOnly] = useState(false)
   const [selectedEvent, setSelectedEvent] = useState<string>('all')
@@ -453,6 +516,12 @@ export default function LeadsTable({
       lead.icpFit === icpFitStatusEnum.enumValues[0]
     ))
 
+  const shouldShowAction = (action: 'export' | 'enrich' | 'score' | 'websites' | 'followup') => {
+    if (!showActions) return false;
+    if (!allowedActions) return true; // If no allowedActions specified, show all
+    return allowedActions.includes(action);
+  };
+
   return (
     <Card className="max-w-2xl mx-auto">
       <CardHeader className="pb-0">
@@ -468,16 +537,16 @@ export default function LeadsTable({
 
         {showActions && (
           <div className="flex flex-wrap items-center gap-2 mt-4">
-            <FindWebsitesButton leads={leads} />
-            <ScoreButton leads={leads} />
-            <EnrichLinkedInButton leads={leads} />
-            <CreateFollowUpsButton leads={leads} />
+            {shouldShowAction('websites') && <FindWebsitesButton leads={leads} />}
+            {shouldShowAction('score') && <ScoreButton leads={leads} />}
+            {shouldShowAction('enrich') && <EnrichLinkedInButton leads={leads} />}
+            {shouldShowAction('followup') && <CreateFollowUpsButton leads={leads} />}
           </div>
         )}
 
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mt-4">
-          <div className="flex flex-col sm:flex-row gap-4">
-            {/* Add event filter */}
+          <div className="flex flex-col sm:flex-row items-center gap-4">
+            {/* Event filter */}
             {eventNames.length > 0 && (
               <Select value={selectedEvent} onValueChange={setSelectedEvent}>
                 <SelectTrigger className="w-[180px]">
@@ -494,10 +563,20 @@ export default function LeadsTable({
               </Select>
             )}
             
+            {/* Qualification filter */}
             {showQualificationFilter && (
               <FilterSwitch 
                 checked={showQualifiedOnly}
                 onCheckedChange={setShowQualifiedOnly}
+              />
+            )}
+
+            {/* Export button */}
+            {shouldShowAction('export') && (
+              <ExportButton 
+                eventName={selectedEvent}
+                qualifiedOnly={showQualifiedOnly}
+                totalLeads={filteredLeads.length}
               />
             )}
           </div>

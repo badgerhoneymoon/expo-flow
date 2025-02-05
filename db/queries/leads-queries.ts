@@ -2,8 +2,8 @@
 
 import { eq, and, or, sql } from "drizzle-orm"
 import { db } from "@/db/db"
-import { leads } from "@/db/schema"
-import type { Lead, NewLead, ReferralData } from "@/db/schema"
+import { leads, targetStatusEnum, icpFitStatusEnum } from "@/db/schema/leads-schema"
+import type { Lead, NewLead, ReferralData } from "@/db/schema/leads-schema"
 
 export async function getLeads(): Promise<Lead[]> {
   try {
@@ -130,5 +130,39 @@ export async function updateLeadLinkedIn(id: string, linkedin: string): Promise<
   } catch (error) {
     console.error("[DB Update] Error updating lead LinkedIn:", error);
     throw new Error("Failed to update lead LinkedIn");
+  }
+}
+
+export async function getFilteredLeads(filters: {
+  eventName?: string;
+  qualifiedOnly?: boolean;
+}): Promise<Lead[]> {
+  try {
+    let conditions = [];
+
+    // Build conditions array
+    if (filters.eventName && filters.eventName !== 'all') {
+      conditions.push(eq(leads.eventName, filters.eventName));
+    }
+
+    if (filters.qualifiedOnly) {
+      conditions.push(
+        and(
+          eq(leads.isTarget, targetStatusEnum.enumValues[0]), // "YES"
+          eq(leads.icpFit, icpFitStatusEnum.enumValues[0])   // "YES"
+        )
+      );
+    }
+
+    // Apply all conditions at once
+    const results = await db
+      .select()
+      .from(leads)
+      .where(conditions.length > 0 ? and(...conditions) : undefined);
+
+    return results.map(lead => ({ ...lead, referrals: (lead.referrals || []) as ReferralData[] }));
+  } catch (error) {
+    console.error("Error getting filtered leads:", error);
+    throw new Error("Failed to get filtered leads");
   }
 } 

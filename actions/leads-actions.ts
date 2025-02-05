@@ -287,4 +287,166 @@ export async function updateLeadsLinkedIn(profiles: Array<{ leadId: string, link
     console.error('[LinkedIn Update] Error:', error);
     return { success: false, error: "Failed to update LinkedIn profiles" };
   }
-} 
+}
+
+export async function exportFilteredLeadsToCSV(filters: {
+  eventName?: string;
+  qualifiedOnly?: boolean;
+}) {
+  try {
+    // Get filtered leads from database using our query function
+    const filteredLeads = await queries.getFilteredLeads(filters);
+    
+    // Define CSV headers based on all schema columns
+    const headers = [
+      // Core Identification
+      'ID',
+      'Created At',
+      'Updated At',
+      
+      // Event Context
+      'Event Name',
+      'Event Start Date',
+      'Event End Date',
+      
+      // Basic Lead Info
+      'First Name',
+      'Last Name',
+      'Job Title',
+      'Company',
+      'Website',
+      
+      // Contact Info
+      'Personal Email',
+      'Company Email',
+      'Personal Phone',
+      'Company Phone',
+      'LinkedIn',
+      
+      // Source Tracking
+      'Has Business Card',
+      'Has Text Note',
+      'Has Voice Memo',
+      
+      // Internal enrichment
+      'Main Interest',
+      'Next Steps',
+      'Notes',
+      
+      // External enrichment
+      'Company Industry',
+      'Company Size',
+      'Company Business',
+      
+      // Qualification Info
+      'Is Target',
+      'ICP Fit',
+      'Qualification Reason',
+      
+      // Follow-up
+      'Contact Timing',
+      'Contact Date',
+      'Follow Up Template',
+      
+      // Raw Data
+      'Raw Business Card',
+      'Raw Text Note',
+      'Raw Voice Memo',
+      
+      // Storage Paths
+      'Business Card Path',
+      'Voice Memo Path',
+      
+      // Referrals (as JSON string)
+      'Referrals'
+    ];
+
+    // Convert leads to CSV rows
+    const rows = filteredLeads.map(lead => [
+      // Core Identification
+      lead.id,
+      lead.createdAt ? new Date(lead.createdAt).toISOString() : '',
+      lead.updatedAt ? new Date(lead.updatedAt).toISOString() : '',
+      
+      // Event Context
+      lead.eventName,
+      lead.eventStartDate ? new Date(lead.eventStartDate).toISOString() : '',
+      lead.eventEndDate ? new Date(lead.eventEndDate).toISOString() : '',
+      
+      // Basic Lead Info
+      lead.firstName,
+      lead.lastName,
+      lead.jobTitle,
+      lead.company,
+      lead.website,
+      
+      // Contact Info
+      lead.personalEmail,
+      lead.companyEmail,
+      lead.personalPhone,
+      lead.companyPhone,
+      lead.linkedin,
+      
+      // Source Tracking
+      lead.hasBusinessCard,
+      lead.hasTextNote,
+      lead.hasVoiceMemo,
+      
+      // Internal enrichment
+      lead.mainInterest,
+      lead.nextSteps,
+      lead.notes,
+      
+      // External enrichment
+      lead.companyIndustry,
+      lead.companySize,
+      lead.companyBusiness,
+      
+      // Qualification Info
+      lead.isTarget,
+      lead.icpFit,
+      lead.qualificationReason,
+      
+      // Follow-up
+      lead.contactTiming,
+      lead.contactDate,
+      lead.followUpTemplate,
+      
+      // Raw Data
+      lead.rawBusinessCard,
+      lead.rawTextNote,
+      lead.rawVoiceMemo,
+      
+      // Storage Paths
+      lead.businessCardPath,
+      lead.voiceMemoPath,
+      
+      // Referrals as JSON string
+      JSON.stringify(lead.referrals || [])
+    ]);
+
+    // Create CSV content
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => 
+        row.map(cell => {
+          // Handle cells that might contain commas, quotes, or newlines
+          if (cell === null || cell === undefined) return '""';
+          const cellStr = String(cell);
+          if (cellStr.includes(',') || cellStr.includes('"') || cellStr.includes('\n')) {
+            return `"${cellStr.replace(/"/g, '""')}"`;
+          }
+          return cellStr;
+        }).join(',')
+      )
+    ].join('\n');
+
+    return { success: true, data: csvContent };
+  } catch (error) {
+    console.error('[Filtered CSV Export] Error:', error);
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : "Failed to export filtered leads to CSV" 
+    };
+  }
+}
