@@ -9,7 +9,6 @@ export interface ReferralData {
   firstName: string
   lastName: string
   position?: string
-  contactTiming?: string
   contactDate?: string
   notes?: string
 }
@@ -63,7 +62,6 @@ export const leads = pgTable("leads", {
   qualificationReason: text("qualification_reason"),
 
   // Follow-up
-  contactTiming: text("contact_timing"),
   contactDate: text("contact_date"),
   followUpTemplate: text("follow_up_template"),
   

@@ -5,7 +5,6 @@ export const ReferralSchema = z.object({
   firstName: z.string(),
   lastName: z.string(),
   position: z.string().optional(),
-  contactTiming: z.string().optional(),
   contactDate: z.string().optional(),
   notes: z.string().optional()
 })
@@ -57,7 +56,6 @@ export const StructuredOutputSchema = z.object({
   referrals: z.array(ReferralSchema),
 
   // Follow-up
-  contactTiming: z.string().optional(),
   contactDate: z.string().optional(),
   followUpTemplate: z.string().optional()
 }).merge(RawDataSchema)

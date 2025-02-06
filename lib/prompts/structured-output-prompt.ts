@@ -110,16 +110,12 @@ GENERAL DIRECTIVES:
 
 ────────────────────────────────────────────
 4. FOLLOW-UP INFORMATION:
-- Contact Timing:
-  * Extract the exact phrasing for follow-up timing.
-  * Convert relative expressions (e.g., "in 2 weeks", "next Monday", "mid-Q2", "end of fiscal year") to an absolute date (YYYY-MM-DD) using currentDate.
-  * If the timing is too ambiguous (e.g., "after maternity leave", "early next month") and cannot be precisely determined, leave the field empty and optionally record the original phrase in "notes" as ambiguous.
 - Contact Date:
-  * Include only if an exact date is explicitly provided.
   * Format as YYYY-MM-DD.
+  * Convert relative expressions (e.g., "in 2 weeks", "next Monday", "mid-Q2", "end of fiscal year") to an absolute date (YYYY-MM-DD) using currentDate.
   * Example: "December 20th" becomes "${currentDate.split('-')[0]}-12-20".
   * Use the current year unless another year is explicitly provided.
-  * If the date conversion is ambiguous, leave the field empty and optionally record the original phrase in "notes" as ambiguous.
+  * If the date conversion is ambiguous, then record the original phrase in "notes" as ambiguous.
 
 ────────────────────────────────────────────
 5. REFERRAL HANDLING:
@@ -129,8 +125,10 @@ GENERAL DIRECTIVES:
     - Apply the same extraction and validation rules as for the main lead.
     - For partial names, assign "N/A" to the missing component.
   * Position: Include if provided.
-  * Contact Timing: Convert any natural language timing to an absolute date (YYYY-MM-DD) using currentDate, if possible.
-  * Contact Date: Must be in YYYY-MM-DD format if an exact date is provided.
+  * Contact Date: 
+    - Must be in YYYY-MM-DD format.
+    - Convert any relative or natural language timing (e.g., "next week", "after vacation") to an absolute date using currentDate.
+    - If the date cannot be determined precisely, then record the original phrase in "notes" as ambiguous.
   * Notes: Include any additional context regarding the referral.
 - Examples:  
   - For "Sarah will be back from vacation on January 15th":  
@@ -143,13 +141,16 @@ GENERAL DIRECTIVES:
     {
       "firstName": "Mike",
       "lastName": "Smith",
-      "contactTiming": "2024-XX-XX" // Exact date computed from "next week"
+      "contactDate": "2024-XX-XX" // Exact date computed from "next week"
     }
 - Do not combine referral details from different parts; include only those explicitly mentioned.
 
 ────────────────────────────────────────────
 FINAL REMINDERS & VALIDATION:
 - Today's date is ${currentDate}.
+- Self-Reference Handling:
+  * Do not create a referral entry when the speaker is referring to themselves or the main lead.
+  * Example: If the voice note contains "John Smith will follow up", and John Smith is the main lead, do not create a referral.
 - If any field is ambiguous, conflicting, or not explicitly provided, leave it empty.
 - Actionable follow-ups must appear only in nextSteps, contactTiming, or contactDate; they must not appear in notes.
 - All dates must be in absolute YYYY-MM-DD format.
