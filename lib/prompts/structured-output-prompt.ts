@@ -66,6 +66,13 @@ GENERAL DIRECTIVES:
   * Ensure the URL is complete with the proper protocol ("http://" or "https://").
   * Verify that it contains a valid domain extension.
   * Correct any OCR errors (e.g., "htp://" → "http://").
+- Contact Date:
+  * Format as YYYY-MM-DD.
+  * Convert relative expressions (e.g., "in 2 weeks", "next Monday", "mid-Q2", "end of fiscal year") to an absolute date using currentDate.
+  * Example: "December 20th" becomes "${currentDate.split('-')[0]}-12-20".
+  * Use the current year unless another year is explicitly provided.
+  * If the date conversion is ambiguous, then record the original phrase in "notes" as ambiguous.
+  * If a contact date is mentioned for any referral, it should also be set as the contact date for the main lead.
 
 ────────────────────────────────────────────
 2. CONTACT INFORMATION:
@@ -109,16 +116,7 @@ GENERAL DIRECTIVES:
   * Example: If the input says "Maybe follow up when things settle," add a note: "Ambiguous: 'Maybe follow up when things settle'".
 
 ────────────────────────────────────────────
-4. FOLLOW-UP INFORMATION:
-- Contact Date:
-  * Format as YYYY-MM-DD.
-  * Convert relative expressions (e.g., "in 2 weeks", "next Monday", "mid-Q2", "end of fiscal year") to an absolute date (YYYY-MM-DD) using currentDate.
-  * Example: "December 20th" becomes "${currentDate.split('-')[0]}-12-20".
-  * Use the current year unless another year is explicitly provided.
-  * If the date conversion is ambiguous, then record the original phrase in "notes" as ambiguous.
-
-────────────────────────────────────────────
-5. REFERRAL HANDLING:
+4. REFERRAL HANDLING:
 - Always include a referrals array in the output, even if empty.
 - For each explicitly mentioned referral, output an object with:
   * firstName & lastName (REQUIRED):
@@ -129,6 +127,7 @@ GENERAL DIRECTIVES:
     - Must be in YYYY-MM-DD format.
     - Convert any relative or natural language timing (e.g., "next week", "after vacation") to an absolute date using currentDate.
     - If the date cannot be determined precisely, then record the original phrase in "notes" as ambiguous.
+    - When a contact date is set for a referral, ensure it is also set as the contact date for the main lead.
   * Notes: Include any additional context regarding the referral.
 - Examples:  
   - For "Sarah will be back from vacation on January 15th":  
@@ -152,7 +151,7 @@ FINAL REMINDERS & VALIDATION:
   * Do not create a referral entry when the speaker is referring to themselves or the main lead.
   * Example: If the voice note contains "John Smith will follow up", and John Smith is the main lead, do not create a referral.
 - If any field is ambiguous, conflicting, or not explicitly provided, leave it empty.
-- Actionable follow-ups must appear only in nextSteps or contactDate; they must not appear in notes.
+- Actionable follow-ups must appear only in nextSteps, with their associated dates in contactDate; they must not appear in notes.
 - All dates must be in absolute YYYY-MM-DD format.
 - Personal and company contact details must remain distinct.
 - Use exact phrases when available; do not fabricate or infer data.
