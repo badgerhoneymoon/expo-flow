@@ -152,7 +152,7 @@ FINAL REMINDERS & VALIDATION:
   * Do not create a referral entry when the speaker is referring to themselves or the main lead.
   * Example: If the voice note contains "John Smith will follow up", and John Smith is the main lead, do not create a referral.
 - If any field is ambiguous, conflicting, or not explicitly provided, leave it empty.
-- Actionable follow-ups must appear only in nextSteps, contactTiming, or contactDate; they must not appear in notes.
+- Actionable follow-ups must appear only in nextSteps or contactDate; they must not appear in notes.
 - All dates must be in absolute YYYY-MM-DD format.
 - Personal and company contact details must remain distinct.
 - Use exact phrases when available; do not fabricate or infer data.

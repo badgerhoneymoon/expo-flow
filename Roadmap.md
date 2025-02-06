@@ -3,3 +3,4 @@
 - Поле для квалификации - Теплота, например - горячий (готов сейчас брать), тёплый (в целом интересно), холодный (типа хзхз)
 - Works without WIFI
 - User should be able to change ICP and Target manually
+- After New lead creation leave the Event name page as is

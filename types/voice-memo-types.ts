@@ -7,19 +7,37 @@ import { z } from "zod";
 // - Multiple memos timeline support
 
 export const VoiceMemoSchema = z.object({
-  mainInterest: z.string().optional(),
+  // Basic Lead Info
+  firstName: z.string(),
+  lastName: z.string(),
+  jobTitle: z.string().optional(),
   company: z.string().optional(),
-  referral: z.object({                          // If we should follow up a different contact
-    firstName: z.string().optional(),
-    lastName: z.string().optional(),
+  website: z.string().optional(),
+  
+  // Contact Info
+  personalEmail: z.string().optional(),
+  companyEmail: z.string().optional(),
+  personalPhone: z.string().optional(),
+  companyPhone: z.string().optional(),
+  linkedin: z.string().optional(),
+
+  // Follow-up
+  contactDate: z.string().optional(),      // Absolute date in YYYY-MM-DD format
+  followUpTemplate: z.string().optional(), // Generated follow-up message
+
+  // Additional Info
+  mainInterest: z.string().optional(),     // Main topic of interest
+  nextSteps: z.string().optional(),        // Specific next actions
+  notes: z.string().optional(),            // Additional context or observations
+
+  // Referrals
+  referrals: z.array(z.object({
+    firstName: z.string(),
+    lastName: z.string(),
     position: z.string().optional(),
-    contactTiming: z.string().optional(),      // Raw timing text (e.g., "next week", "after December")
-    contactDate: z.string().optional(),        // Structured YYYY-MM-DD date
-  }).optional(),
-  event: z.string().optional(),
-  nextSteps: z.string().optional(),
-  notes: z.string().optional(),
-  rawText: z.string().optional(),
+    contactDate: z.string().optional(),
+    notes: z.string().optional()
+  })).optional()
 });
 
 export type VoiceMemoData = z.infer<typeof VoiceMemoSchema>;

@@ -863,12 +863,6 @@ export default function LeadsTable({
                       <div className="space-y-2">
                         <div className="text-xs font-medium text-muted-foreground">Follow-up</div>
                         <div className="space-y-3">
-                          {lead.contactTiming && lead.contactTiming !== "N/A" && (
-                            <div className="flex items-center gap-2 text-sm">
-                              <Calendar className="h-4 w-4 text-muted-foreground" />
-                              {lead.contactTiming}
-                            </div>
-                          )}
                           {lead.contactDate && lead.contactDate !== "N/A" && (
                             <div className="flex items-center gap-2 text-sm">
                               <Calendar className="h-4 w-4 text-muted-foreground" />
@@ -883,66 +877,47 @@ export default function LeadsTable({
                               </div>
                             </div>
                           )}
-                          {lead.nextSteps && lead.nextSteps !== "N/A" && (
-                            <div className="flex flex-col gap-1">
-                              <div className="text-xs text-muted-foreground">Next Steps</div>
-                              <div className="text-sm bg-muted/50 p-2 rounded-md">
-                                {lead.nextSteps}
-                              </div>
-                            </div>
-                          )}
-                          {lead.notes && lead.notes !== "N/A" && lead.notes !== "No additional notes" && (
-                            <div className="flex flex-col gap-1">
-                              <div className="text-xs text-muted-foreground">Notes</div>
-                              <div className="text-sm bg-muted/50 p-2 rounded-md">
-                                {lead.notes}
-                              </div>
-                            </div>
-                          )}
-                          {lead.referrals && lead.referrals.length > 0 && (
-                            <div className="flex flex-col gap-3">
-                              <div className="text-xs text-muted-foreground">Referrals</div>
-                              <div className="space-y-2">
-                                {lead.referrals.map((referral, index) => (
-                                  <Accordion type="multiple" className="w-full" key={index}>
-                                    <AccordionItem value={`referral-${index}`} className="border-0">
-                                      <AccordionTrigger className="py-0 hover:no-underline">
-                                        <Badge variant="purple" className="whitespace-nowrap cursor-pointer hover:bg-purple-600">
-                                          {referral.firstName} {referral.lastName}
-                                        </Badge>
-                                      </AccordionTrigger>
-                                      <AccordionContent className="pb-2">
-                                        <div className="pl-2 pt-2 space-y-1.5 text-sm">
-                                          {referral.position && (
-                                            <div className="text-muted-foreground">
-                                              Position: {referral.position}
-                                            </div>
-                                          )}
-                                          {referral.contactTiming && (
-                                            <div className="text-muted-foreground">
-                                              When: {referral.contactTiming}
-                                            </div>
-                                          )}
-                                          {referral.contactDate && (
-                                            <div className="text-muted-foreground">
-                                              Date: {referral.contactDate}
-                                            </div>
-                                          )}
-                                          {referral.notes && (
-                                            <div className="bg-muted/50 p-2 rounded-md mt-2">
-                                              {referral.notes}
-                                            </div>
-                                          )}
-                                        </div>
-                                      </AccordionContent>
-                                    </AccordionItem>
-                                  </Accordion>
-                                ))}
-                              </div>
-                            </div>
-                          )}
                         </div>
                       </div>
+
+                      {/* Referrals Section */}
+                      {lead.referrals && lead.referrals.length > 0 && (
+                        <div className="space-y-2">
+                          <div className="text-xs font-medium text-muted-foreground">Referrals</div>
+                          <div className="space-y-2">
+                            {lead.referrals.map((referral, index) => (
+                              <Accordion type="multiple" className="w-full" key={index}>
+                                <AccordionItem value={`referral-${index}`} className="border-0">
+                                  <AccordionTrigger className="py-0 hover:no-underline">
+                                    <Badge variant="purple" className="whitespace-nowrap cursor-pointer hover:bg-purple-600">
+                                      {referral.firstName} {referral.lastName}
+                                    </Badge>
+                                  </AccordionTrigger>
+                                  <AccordionContent className="pb-2">
+                                    <div className="pl-2 pt-2 space-y-1.5 text-sm">
+                                      {referral.position && (
+                                        <div className="text-muted-foreground">
+                                          Position: {referral.position}
+                                        </div>
+                                      )}
+                                      {referral.contactDate && (
+                                        <div className="text-muted-foreground">
+                                          Date: {referral.contactDate}
+                                        </div>
+                                      )}
+                                      {referral.notes && (
+                                        <div className="bg-muted/50 p-2 rounded-md mt-2">
+                                          {referral.notes}
+                                        </div>
+                                      )}
+                                    </div>
+                                  </AccordionContent>
+                                </AccordionItem>
+                              </Accordion>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </AccordionContent>
                 </AccordionItem>

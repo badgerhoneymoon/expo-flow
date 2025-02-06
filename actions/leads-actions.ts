@@ -61,7 +61,6 @@ export async function createLead(structuredOutput: StructuredOutput) {
         companyIndustry: structuredOutput.companyIndustry === "N/A" ? existingLead.companyIndustry : (structuredOutput.companyIndustry || existingLead.companyIndustry),
         companySize: structuredOutput.companySize === "N/A" ? existingLead.companySize : (structuredOutput.companySize || existingLead.companySize),
         companyBusiness: structuredOutput.companyBusiness === "N/A" ? existingLead.companyBusiness : (structuredOutput.companyBusiness || existingLead.companyBusiness),
-        contactTiming: structuredOutput.contactTiming === "N/A" ? existingLead.contactTiming : (structuredOutput.contactTiming || existingLead.contactTiming),
         contactDate: structuredOutput.contactDate === "N/A" ? existingLead.contactDate : (structuredOutput.contactDate || existingLead.contactDate),
         followUpTemplate: structuredOutput.followUpTemplate === "N/A" ? existingLead.followUpTemplate : (structuredOutput.followUpTemplate || existingLead.followUpTemplate),
 
@@ -344,7 +343,6 @@ export async function exportFilteredLeadsToCSV(filters: {
       'Qualification Reason',
       
       // Follow-up
-      'Contact Timing',
       'Contact Date',
       'Follow Up Template',
       
@@ -408,7 +406,6 @@ export async function exportFilteredLeadsToCSV(filters: {
       lead.qualificationReason,
       
       // Follow-up
-      lead.contactTiming,
       lead.contactDate,
       lead.followUpTemplate,
       

@@ -39,7 +39,6 @@ export function structuredOutputToNewLead(output: StructuredOutput): Omit<NewLea
     qualificationReason: null,
 
     // Follow-up
-    contactTiming: output.contactTiming || "N/A",
     contactDate: output.contactDate || "N/A",
     followUpTemplate: output.followUpTemplate || "N/A",
 
