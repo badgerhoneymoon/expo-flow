@@ -30,7 +30,7 @@ export const StructuredOutputSchema = z.object({
   lastName: z.string(),
   jobTitle: z.string().optional(),
   company: z.string().optional(),
-  website: z.string().optional(),
+  website: z.string(),
   
   // Event Info
   eventName: z.string().optional(),
