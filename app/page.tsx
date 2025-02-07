@@ -40,7 +40,9 @@ interface CapturedFiles {
 export default function Home() {
   const [capturedFiles, setCapturedFiles] = useState<CapturedFiles>({})
   const [isUploading, setIsUploading] = useState(false)
-  const [key, setKey] = useState(0)
+  const [photoKey, setPhotoKey] = useState(0)
+  const [voiceKey, setVoiceKey] = useState(0)
+  const [notesKey, setNotesKey] = useState(0)
   const [leads, setLeads] = useState<Lead[]>([])
   const [isRussian, setIsRussian] = useState(false)
   const [eventName, setEventName] = useState("")
@@ -156,7 +158,10 @@ export default function Home() {
 
       toast.success('Lead created and processed successfully')
       setCapturedFiles({})
-      setKey(prev => prev + 1)
+      // Reset individual components
+      setPhotoKey(prev => prev + 1)
+      setVoiceKey(prev => prev + 1)
+      setNotesKey(prev => prev + 1)
       fetchLeads()
     } catch (error) {
       console.error('Upload error:', error)
@@ -200,7 +205,7 @@ export default function Home() {
             </div>
 
             <PhotoCapture 
-              key={`photo-${key}`}
+              key={`photo-${photoKey}`}
               onCapture={(file) => setCapturedFiles(prev => ({ ...prev, businessCard: file }))} 
             />
 
@@ -225,7 +230,7 @@ export default function Home() {
                   </span>
                 </div>
                 <VoiceRecorder 
-                  key={`voice-${key}`}
+                  key={`voice-${voiceKey}`}
                   onCapture={(blob) => setCapturedFiles(prev => ({ ...prev, voiceMemo: blob }))} 
                 />
               </Card>
@@ -236,7 +241,7 @@ export default function Home() {
                 Additional Notes
               </label>
               <Textarea
-                key={`notes-${key}`}
+                key={`notes-${notesKey}`}
                 placeholder="Add any additional notes about the lead..."
                 className="min-h-[100px] resize-y"
                 value={capturedFiles.textNotes || ''}

@@ -4,3 +4,5 @@
 - Works without WIFI
 - User should be able to change ICP and Target manually
 - After New lead creation leave the Event name page as is
+- Upload business card in bulk
+- Make a photo of multiple cards in one shot
