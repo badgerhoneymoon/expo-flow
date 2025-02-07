@@ -45,7 +45,14 @@ export default function Home() {
   const [notesKey, setNotesKey] = useState(0)
   const [leads, setLeads] = useState<Lead[]>([])
   const [isRussian, setIsRussian] = useState(false)
-  const [eventName, setEventName] = useState("")
+  const [eventName, setEventName] = useState(
+    typeof window !== 'undefined' ? localStorage.getItem('lastEventName') ?? '' : ''
+  )
+
+  // Persist event name
+  useEffect(() => {
+    if (eventName) localStorage.setItem('lastEventName', eventName)
+  }, [eventName])
 
   // Fetch leads on mount and after successful upload
   const fetchLeads = async () => {
