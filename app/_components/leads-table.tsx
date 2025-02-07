@@ -859,6 +859,16 @@ export default function LeadsTable({
                         </div>
                       </div>
 
+                      {/* Notes Section */}
+                      {lead.notes && lead.notes !== "N/A" && (
+                        <div className="space-y-2">
+                          <div className="text-xs font-medium text-muted-foreground">Notes</div>
+                          <div className="text-sm bg-muted/50 p-2 rounded-md">
+                            {lead.notes}
+                          </div>
+                        </div>
+                      )}
+
                       {/* Follow-up Section */}
                       <div className="space-y-2">
                         <div className="text-xs font-medium text-muted-foreground">Follow-up</div>
