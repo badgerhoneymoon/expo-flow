@@ -87,24 +87,44 @@ GENERAL DIRECTIVES:
 ────────────────────────────────────────────
 2. CONTACT INFORMATION:
 - Personal Email:
-  * Extract email addresses that are either:
-    1. Use personal domains (e.g., gmail.com, yahoo.com, outlook.com)
-    2. Use company domain but with identifiable individual indicators before @ such as:
-       - First name (e.g., john@company.com)
-       - Full name (e.g., johnsmith@company.com, john.smith@company.com)
-       - Position-based (e.g., cto@company.com, head.sales@company.com)
-  * Validate the format, convert to lowercase, and correct common typos.
+  * Classify email addresses in this order:
+    1. Personal email providers (gmail.com, yahoo.com, outlook.com, etc.)
+    2. Individual work emails that contain the person's name:
+       - First name (john@company.com)
+       - Last name (smith@company.com)
+       - Full name (john.smith@company.com)
+       - Initials (js@company.com)
+    3. Role-based emails that match the person's job title:
+       - cto@company.com for Chief Technology Officer
+       - head.sales@company.com for Head of Sales
+       - Abbreviated forms of their position:
+         * ops.manager@company.com → Operational Manager
+         * om@company.com → Operational Manager
+         * dev.lead@company.com → Development Lead
+         * pm@company.com → Project Manager/Product Manager (note ambiguity in notes)
+  * If multiple personal emails found, prefer work email over personal provider
+  * If no clear personal email found, set to "N/A"
+
 - Company Email:
-  * Extract generic company email addresses that don't identify a specific individual:
-    - info@company.com
-    - contact@company.com
-    - support@company.com
-    - hello@company.com
-    - sales@company.com
-    - etc.
-  * Validate the format and correct errors.
-  * Tie-Breaker: If multiple company emails exist without clear labeling, mark as ambiguous in Notes.
-  * Example: Between "sales@acme.com" and "contact@acme.com", mark both as ambiguous in Notes.
+  * Classify email addresses as company email if they are:
+    1. Generic company addresses:
+       - info@company.com
+       - contact@company.com
+       - sales@company.com
+       - support@company.com
+       - hello@company.com
+    2. Department emails not matching the person's role:
+       - marketing@company.com
+       - hr@company.com
+       - etc.
+
+  * If no company email or website, set to "N/A"
+
+- If an email could be classified as both personal and company:
+  * Prioritize personal if it contains the person's name
+  * Use as company email if it's purely role-based
+  * If still ambiguous, put in personal and note the ambiguity
+
 - Personal Phone:
   * Extract mobile or cell numbers clearly labeled as personal.
   * Format with a country code (e.g., +1-555-555-5555) and remove all non-numeric characters except the +.
