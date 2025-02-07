@@ -76,20 +76,24 @@ GENERAL DIRECTIVES:
 ────────────────────────────────────────────
 2. CONTACT INFORMATION:
 - Personal Email:
-  * Extract email addresses that are clearly intended as personal.
+  * Extract email addresses that are either:
+    1. Use personal domains (e.g., gmail.com, yahoo.com, outlook.com)
+    2. Use company domain but with identifiable individual indicators before @ such as:
+       - First name (e.g., john@company.com)
+       - Full name (e.g., johnsmith@company.com, john.smith@company.com)
+       - Position-based (e.g., cto@company.com, head.sales@company.com)
   * Validate the format, convert to lowercase, and correct common typos.
 - Company Email:
-  * Some typical company emails are:
+  * Extract generic company email addresses that don't identify a specific individual:
     - info@company.com
     - contact@company.com
     - support@company.com
     - hello@company.com
+    - sales@company.com
     - etc.
-  * Extract email addresses that match the company domain.
-  * If a company website is provided, ensure the email corresponds to that domain.
   * Validate the format and correct errors.
-  * Tie-Breaker: If multiple company emails exist without clear labeling, leave the field empty.
-  * Example: Between "john@acme.com" and "john@gmail.com", choose "john@acme.com" if the website is acme.com.
+  * Tie-Breaker: If multiple company emails exist without clear labeling, mark as ambiguous in Notes.
+  * Example: Between "sales@acme.com" and "contact@acme.com", mark both as ambiguous in Notes.
 - Personal Phone:
   * Extract mobile or cell numbers clearly labeled as personal.
   * Format with a country code (e.g., +1-555-555-5555) and remove all non-numeric characters except the +.
