@@ -298,11 +298,6 @@ export async function exportFilteredLeadsToCSV(filters: {
     
     // Define CSV headers based on all schema columns
     const headers = [
-      // Core Identification
-      'ID',
-      'Created At',
-      'Updated At',
-      
       // Event Context
       'Event Name',
       'Event Start Date',
@@ -321,11 +316,6 @@ export async function exportFilteredLeadsToCSV(filters: {
       'Personal Phone',
       'Company Phone',
       'LinkedIn',
-      
-      // Source Tracking
-      'Has Business Card',
-      'Has Text Note',
-      'Has Voice Memo',
       
       // Internal enrichment
       'Main Interest',
@@ -351,21 +341,12 @@ export async function exportFilteredLeadsToCSV(filters: {
       'Raw Text Note',
       'Raw Voice Memo',
       
-      // Storage Paths
-      'Business Card Path',
-      'Voice Memo Path',
-      
       // Referrals (as JSON string)
       'Referrals'
     ];
 
     // Convert leads to CSV rows
     const rows = filteredLeads.map(lead => [
-      // Core Identification
-      lead.id,
-      lead.createdAt ? new Date(lead.createdAt).toISOString() : '',
-      lead.updatedAt ? new Date(lead.updatedAt).toISOString() : '',
-      
       // Event Context
       lead.eventName,
       lead.eventStartDate ? new Date(lead.eventStartDate).toISOString() : '',
@@ -384,11 +365,6 @@ export async function exportFilteredLeadsToCSV(filters: {
       lead.personalPhone,
       lead.companyPhone,
       lead.linkedin,
-      
-      // Source Tracking
-      lead.hasBusinessCard,
-      lead.hasTextNote,
-      lead.hasVoiceMemo,
       
       // Internal enrichment
       lead.mainInterest,
@@ -413,10 +389,6 @@ export async function exportFilteredLeadsToCSV(filters: {
       lead.rawBusinessCard,
       lead.rawTextNote,
       lead.rawVoiceMemo,
-      
-      // Storage Paths
-      lead.businessCardPath,
-      lead.voiceMemoPath,
       
       // Referrals as JSON string
       JSON.stringify(lead.referrals || [])
