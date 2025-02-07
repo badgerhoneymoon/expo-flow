@@ -6,3 +6,4 @@
 - After New lead creation leave the Event name page as is
 - Upload business card in bulk
 - Make a photo of multiple cards in one shot
+- Parallel promise - voice transcription and photo in parallel
