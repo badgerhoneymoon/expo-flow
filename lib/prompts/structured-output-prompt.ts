@@ -79,6 +79,12 @@ GENERAL DIRECTIVES:
   * Extract email addresses that are clearly intended as personal.
   * Validate the format, convert to lowercase, and correct common typos.
 - Company Email:
+  * Some typical company emails are:
+    - info@company.com
+    - contact@company.com
+    - support@company.com
+    - hello@company.com
+    - etc.
   * Extract email addresses that match the company domain.
   * If a company website is provided, ensure the email corresponds to that domain.
   * Validate the format and correct errors.
