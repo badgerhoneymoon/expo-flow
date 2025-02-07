@@ -7,3 +7,6 @@
 - Upload business card in bulk
 - Make a photo of multiple cards in one shot
 - Parallel promise - voice transcription and photo in parallel
+- Show the leads card with the full name + position after we get the photo processed and then process the rest of the data
+- Progressive Web App (PWA)
+- Edit lead fields before export
