@@ -84,51 +84,65 @@ export default function Home() {
     }
 
     setIsUploading(true)
+    const startTime = performance.now()
+    console.log('🚀 Starting lead creation process')
 
     try {
-      if (isBulkMode && Array.isArray(capturedFiles.businessCard)) {
-        // Process multiple business cards in parallel
+      // Multiple files handling
+      if (Array.isArray(capturedFiles.businessCard)) {
         const results = await Promise.all(
-          capturedFiles.businessCard.map(async (file) => {
+          capturedFiles.businessCard.map(async (file, index) => {
             try {
+              console.log(`\n📄 Processing business card ${index + 1}/${(capturedFiles.businessCard as File[]).length}`)
+              
+              const uploadStart = performance.now()
               const businessCardPath = await uploadBusinessCard(file)
+              const uploadDuration = performance.now() - uploadStart
+              console.log(`⏱️ Upload Business Card: ${uploadDuration.toFixed(2)}ms`)
+
+              // Vision processing
+              const visionStart = performance.now()
               const formData = new FormData()
               formData.append('file', file)
-              
               const visionResult = await extractTextFromImage(formData)
+              const visionDuration = performance.now() - visionStart
+              console.log(`⏱️ OCR Processing: ${visionDuration.toFixed(2)}ms (Success: ${visionResult.success})`)
+
               if (!visionResult.success || !visionResult.text) {
-                console.error('Failed to extract text from business card')
-                return { success: false, error: 'Failed to extract text' }
+                throw new Error('Failed to extract text from image')
               }
 
-              const combinedContext = `BUSINESS CARD:\n${visionResult.text}\n\n`
-              
-              // Process structured data
-              const result = await processStructuredData(combinedContext)
+              // GPT processing
+              const gptStart = performance.now()
+              const result = await processStructuredData(visionResult.text)
+              const gptDuration = performance.now() - gptStart
+              console.log(`⏱️ GPT Processing: ${gptDuration.toFixed(2)}ms (Success: ${result.success})`)
+
               if (!result.success || !result.data) {
-                console.error('Failed to structure data')
-                return { success: false, error: 'Failed to structure data' }
+                throw new Error('Failed to process lead data')
               }
 
-              // Create structured output
-              const structuredData: StructuredOutput = {
+              const structuredData = {
                 ...result.data,
                 eventName,
                 hasBusinessCard: true,
                 hasVoiceMemo: false,
                 hasTextNote: false,
                 businessCardPath,
-                voiceMemoPath: undefined,
-                rawBusinessCard: visionResult.text,
-                rawVoiceMemo: undefined,
-                rawTextNote: undefined
+                rawBusinessCard: visionResult.text
               }
 
               // Create lead
+              const dbStart = performance.now()
               const createResult = await createCapturedLead({
                 businessCardPath,
                 structuredData
               })
+              const dbDuration = performance.now() - dbStart
+              console.log(`⏱️ Database Insert: ${dbDuration.toFixed(2)}ms (Success: ${createResult.success})`)
+
+              const totalDuration = performance.now() - uploadStart
+              console.log(`✨ Total processing time for card ${index + 1}: ${totalDuration.toFixed(2)}ms\n`)
 
               if (!createResult.success) {
                 return { success: false, error: createResult.error }
@@ -136,7 +150,7 @@ export default function Home() {
 
               return { success: true }
             } catch (error) {
-              console.error('Error processing business card:', error)
+              console.error('❌ Error processing business card:', error)
               return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
             }
           })
@@ -144,6 +158,13 @@ export default function Home() {
         
         const successful = results.filter(r => r.success).length
         const failed = results.filter(r => !r.success).length
+        const totalDuration = performance.now() - startTime
+        
+        console.log(`\n📊 Bulk Processing Summary:
+• Total Time: ${totalDuration.toFixed(2)}ms
+• Successful: ${successful}
+• Failed: ${failed}
+• Average Time Per Card: ${(totalDuration / results.length).toFixed(2)}ms\n`)
         
         if (failed === 0) {
           toast.success(`Successfully created ${successful} leads`)
@@ -160,55 +181,70 @@ export default function Home() {
         let rawVoiceMemoText: string | undefined
         let rawBusinessCardText: string | undefined
 
+        console.log('\n🔄 Starting single lead processing')
+
         // Process business card
-        if (capturedFiles.businessCard && !Array.isArray(capturedFiles.businessCard)) {
+        if (capturedFiles.businessCard) {
           try {
+            const uploadStart = performance.now()
             businessCardPath = await uploadBusinessCard(capturedFiles.businessCard)
+            const uploadDuration = performance.now() - uploadStart
+            console.log(`⏱️ Upload Business Card: ${uploadDuration.toFixed(2)}ms`)
+
+            const visionStart = performance.now()
             const formData = new FormData()
             formData.append('file', capturedFiles.businessCard)
-            
             const visionResult = await extractTextFromImage(formData)
+            const visionDuration = performance.now() - visionStart
+            console.log(`⏱️ OCR Processing: ${visionDuration.toFixed(2)}ms (Success: ${visionResult.success})`)
+
             if (visionResult.success && visionResult.text) {
               rawBusinessCardText = visionResult.text
               combinedContext += `BUSINESS CARD:\n${visionResult.text}\n\n`
             }
           } catch (error) {
-            console.error('Error processing business card:', error)
+            console.error('❌ Error processing business card:', error)
           }
         }
 
         // Process voice memo
         if (capturedFiles.voiceMemo) {
           try {
-            console.log('[Upload] Starting voice memo processing')
+            const uploadStart = performance.now()
             voiceMemoPath = await uploadVoiceMemo(capturedFiles.voiceMemo)
-            
-            const audioFile = new File([capturedFiles.voiceMemo], 'voice-memo.mp3', { type: 'audio/mp3' })
+            const uploadDuration = performance.now() - uploadStart
+            console.log(`⏱️ Upload Voice Memo: ${uploadDuration.toFixed(2)}ms`)
+
+            const transcriptionStart = performance.now()
             const formData = new FormData()
+            const audioFile = new File([capturedFiles.voiceMemo], 'voice-memo.mp3', { type: 'audio/mp3' })
             formData.append('file', audioFile)
-            
-            const { success, text, error } = await transcribeVoiceMemo(formData, isRussian ? "ru" : "en")
-            
-            if (success && text) {
-              rawVoiceMemoText = text
-              combinedContext += `VOICE MEMO:\n${text}\n\n`
-            } else {
-              console.error('[Upload] Transcription failed:', error)
+            const transcriptionResult = await transcribeVoiceMemo(formData, isRussian ? "ru" : "en")
+            const transcriptionDuration = performance.now() - transcriptionStart
+            console.log(`⏱️ Voice Transcription: ${transcriptionDuration.toFixed(2)}ms (Success: ${transcriptionResult.success})`)
+
+            if (transcriptionResult.success && transcriptionResult.text) {
+              rawVoiceMemoText = transcriptionResult.text
+              combinedContext += `VOICE MEMO:\n${transcriptionResult.text}\n\n`
             }
           } catch (error) {
-            console.error('[Upload] Error processing voice memo:', error)
+            console.error('❌ Error processing voice memo:', error)
           }
         }
 
-        // Add text notes
+        // Add text notes to context
         if (capturedFiles.textNotes) {
           combinedContext += `TEXT NOTES:\n${capturedFiles.textNotes}\n\n`
         }
 
-        // Process structured data
-        const result = await processStructuredData(combinedContext)
+        // Process with GPT
+        const gptStart = performance.now()
+        const result = await processStructuredData(combinedContext || '')
+        const gptDuration = performance.now() - gptStart
+        console.log(`⏱️ GPT Processing: ${gptDuration.toFixed(2)}ms (Success: ${result.success})`)
+
         if (!result.success || !result.data) {
-          throw new Error(result.error || 'Failed to structure data')
+          throw new Error('Failed to process lead data')
         }
 
         // Create structured output
@@ -226,16 +262,22 @@ export default function Home() {
         }
 
         // Create lead
+        const dbStart = performance.now()
         const createResult = await createCapturedLead({
           businessCardPath,
           voiceMemoPath,
           rawTextNote: capturedFiles.textNotes,
           structuredData
         })
+        const dbDuration = performance.now() - dbStart
+        console.log(`⏱️ Database Insert: ${dbDuration.toFixed(2)}ms (Success: ${createResult.success})`)
         
         if (!createResult.success) {
           throw new Error(createResult.error)
         }
+
+        const totalDuration = performance.now() - startTime
+        console.log(`\n✨ Total Processing Time: ${totalDuration.toFixed(2)}ms\n`)
 
         toast.success('Lead created and processed successfully')
       }
