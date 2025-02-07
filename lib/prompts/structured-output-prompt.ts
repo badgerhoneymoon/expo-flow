@@ -11,10 +11,6 @@ GENERAL DIRECTIVES:
   - Do not merge data across fields. Actionable follow-ups must not be placed in notes.  
   - Personal and company contact details must remain distinct.
 - Error Correction: Correct common OCR errors and typos (e.g., "gmial.com" → "gmail.com", "htp://" → "http://").
-- URL & Phone Number Validation:  
-  - URLs must begin with "http://" or "https://" or "www." and include a valid domain extension (e.g., .com, .org). 
-  - If uncertain about the company website URL, pull the domain from the company email address if present (e.g., "john@acme.com" → "acme.com").
-  - Phone numbers must include a country code, contain only numeric characters (except the + sign), and conform to standard or regionally acceptable formats.
 - Date Conversion:  
   - All dates must be in YYYY-MM-DD format.  
   - Convert any relative or natural language dates (e.g., "next Monday", "in 10 days", "early next month", "mid-Q2", "end of fiscal year") to an absolute date using currentDate as the reference.  
@@ -97,6 +93,11 @@ GENERAL DIRECTIVES:
 - LinkedIn:
   * Extract URLs starting with "linkedin.com/in/".
   * Validate that the profile corresponds to the validated name when possible.
+- Website URL & Phone Number Validation:  
+  - URLs must begin with "http://" or "https://" or "www." and include a valid domain extension (e.g., .com, .org). 
+  - If uncertain about the company website URL, pull the domain from the company email field if present (e.g., "john@acme.com" → "acme.com").
+  - Phone numbers must include a country code, contain only numeric characters (except the + sign), and conform to standard or regionally acceptable formats.
+
 
 ────────────────────────────────────────────
 3. BUSINESS CONTEXT:
@@ -152,7 +153,7 @@ FINAL REMINDERS & VALIDATION:
   * Do not create a referral entry when the speaker is referring to themselves or the main lead.
   * Match the main lead's name in the voice notes to the name on the business card, even if transcribed differently.
   * Example: If the voice note contains "John Smith will follow up", and John Smith is the main lead, do not create a referral.
-- If any field is ambiguous, conflicting, or not explicitly provided, leave it empty.
+- If any field is ambiguous, conflicting, or not explicitly provided, leave it in Notes as ambiguous.
 - Actionable follow-ups must appear only in nextSteps, with their associated dates in contactDate; they must not appear in notes.
 - All dates must be in absolute YYYY-MM-DD format.
 - Personal and company contact details must remain distinct.
