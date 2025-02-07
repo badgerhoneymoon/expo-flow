@@ -12,7 +12,8 @@ GENERAL DIRECTIVES:
   - Personal and company contact details must remain distinct.
 - Error Correction: Correct common OCR errors and typos (e.g., "gmial.com" → "gmail.com", "htp://" → "http://").
 - URL & Phone Number Validation:  
-  - URLs must begin with "http://" or "https://" and include a valid domain extension (e.g., .com, .org).  
+  - URLs must begin with "http://" or "https://" or "www." and include a valid domain extension (e.g., .com, .org). 
+  - If uncertain about the URL, pull the domain from the email address if present.
   - Phone numbers must include a country code, contain only numeric characters (except the + sign), and conform to standard or regionally acceptable formats.
 - Date Conversion:  
   - All dates must be in YYYY-MM-DD format.  
