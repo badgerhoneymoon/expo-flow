@@ -11,6 +11,7 @@ GENERAL DIRECTIVES:
   - Do not merge data across fields. Actionable follow-ups must not be placed in notes.  
   - Personal and company contact details must remain distinct.
 - Error Correction: Correct common OCR errors and typos (e.g., "gmial.com" → "gmail.com", "htp://" → "http://").
+- Phone numbers must include a country code, contain only numeric characters (except the + sign), and conform to standard or regionally acceptable formats.
 - Date Conversion:  
   - All dates must be in YYYY-MM-DD format.  
   - Convert any relative or natural language dates (e.g., "next Monday", "in 10 days", "early next month", "mid-Q2", "end of fiscal year") to an absolute date using currentDate as the reference.  
@@ -60,9 +61,10 @@ GENERAL DIRECTIVES:
   * If multiple companies are mentioned, select the one with the highest contextual relevance.
   * Example: Between "Acme Corp" and "Acme Personal", choose "Acme Corp".
 - Website:
-  * Ensure the URL is complete with the proper protocol ("http://" or "https://").
-  * Verify that it contains a valid domain extension.
   * Correct any OCR errors (e.g., "htp://" → "http://").
+  * URLs must begin with "http://" or "https://" or "www." and include a valid domain extension (e.g., .com, .org). 
+  * If there is no apparent company website, make the domain name from the company email field (e.g., "john@acme.com" → "acme.com").
+
 - Contact Date:
   * Format as YYYY-MM-DD.
   * Convert relative expressions (e.g., "in 2 weeks", "next Monday", "mid-Q2", "end of fiscal year") to an absolute date using currentDate.
@@ -92,12 +94,7 @@ GENERAL DIRECTIVES:
   * If multiple values exist with no clear preference, leave the field empty.
 - LinkedIn:
   * Extract URLs starting with "linkedin.com/in/".
-  * Validate that the profile corresponds to the validated name when possible.
-- Website URL & Phone Number Validation:  
-  - URLs must begin with "http://" or "https://" or "www." and include a valid domain extension (e.g., .com, .org). 
-  - If uncertain about the company website URL, pull the domain from the company email field if present (e.g., "john@acme.com" → "acme.com").
-  - Phone numbers must include a country code, contain only numeric characters (except the + sign), and conform to standard or regionally acceptable formats.
-
+  * Validate that the profile corresponds to the validated name when possible.  
 
 ────────────────────────────────────────────
 3. BUSINESS CONTEXT:
