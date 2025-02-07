@@ -13,7 +13,7 @@ GENERAL DIRECTIVES:
 - Error Correction: Correct common OCR errors and typos (e.g., "gmial.com" → "gmail.com", "htp://" → "http://").
 - URL & Phone Number Validation:  
   - URLs must begin with "http://" or "https://" or "www." and include a valid domain extension (e.g., .com, .org). 
-  - If uncertain about the URL, pull the domain from the email address if present.
+  - If uncertain about the company website URL, pull the domain from the company email address if present (e.g., "john@acme.com" → "acme.com").
   - Phone numbers must include a country code, contain only numeric characters (except the + sign), and conform to standard or regionally acceptable formats.
 - Date Conversion:  
   - All dates must be in YYYY-MM-DD format.  
@@ -150,6 +150,7 @@ FINAL REMINDERS & VALIDATION:
 - Today's date is ${currentDate}.
 - Self-Reference Handling:
   * Do not create a referral entry when the speaker is referring to themselves or the main lead.
+  * Match the main lead's name in the voice notes to the name on the business card, even if transcribed differently.
   * Example: If the voice note contains "John Smith will follow up", and John Smith is the main lead, do not create a referral.
 - If any field is ambiguous, conflicting, or not explicitly provided, leave it empty.
 - Actionable follow-ups must appear only in nextSteps, with their associated dates in contactDate; they must not appear in notes.
