@@ -60,22 +60,6 @@ GENERAL DIRECTIVES:
   * Exclude legal suffixes (e.g., LLC, Inc.) unless they are officially part of the name.
   * If multiple companies are mentioned, select the one with the highest contextual relevance.
   * Example: Between "Acme Corp" and "Acme Personal", choose "Acme Corp".
-- Website:
-  * Extract website URLs from any of these sources in order of priority:
-    1. Explicit website on card (e.g., "company.com", "www.company.com")
-    2. Company domain from company email (e.g., "john@acme.com" → "acme.com")
-    3. Company domain from personal email if it matches company name
-  * For extracted URLs:
-    - Remove any protocol if present (http://, https://)
-    - Remove any trailing slashes or paths
-    - Keep "www." if present, but don't add it if missing
-  * For email-derived domains:
-    - Extract the domain after @ in company or personal email
-    - Remove any subdomains except "www" (e.g., "sales.company.co.uk" → "company.co.uk")
-    - Skip if domain is a common email provider (gmail.com, yahoo.com, etc.)
-  * If multiple valid websites are found:
-    - Prefer the one that best matches the company name
-    - If unclear, leave empty and add both to notes as "Ambiguous:"
 - Contact Date:
   * Format as YYYY-MM-DD.
   * Convert relative expressions (e.g., "in 2 weeks", "next Monday", "mid-Q2", "end of fiscal year") to an absolute date using currentDate.
@@ -124,6 +108,23 @@ GENERAL DIRECTIVES:
   * Prioritize personal if it contains the person's name
   * Use as company email if it's purely role-based
   * If still ambiguous, put in personal and note the ambiguity
+
+- Website:
+  * Extract website URLs from any of these sources in order of priority:
+    1. Explicit website on card (e.g., "company.com", "www.company.com")
+    2. Company domain from company email (e.g., "john@acme.com" → "acme.com")
+    3. Company domain from personal email if it matches company name
+  * For extracted URLs:
+    - Remove any protocol if present (http://, https://)
+    - Remove any trailing slashes or paths
+    - Keep "www." if present, but don't add it if missing
+  * For email-derived domains:
+    - Extract the domain after @ in company or personal email
+    - Remove any subdomains except "www" (e.g., "sales.company.co.uk" → "company.co.uk")
+    - Skip if domain is a common email provider (gmail.com, yahoo.com, etc.)
+  * If multiple valid websites are found:
+    - Prefer the one that best matches the company name
+    - If unclear, leave empty and add both to notes as "Ambiguous:"
 
 - Personal Phone:
   * Extract mobile or cell numbers clearly labeled as personal.
