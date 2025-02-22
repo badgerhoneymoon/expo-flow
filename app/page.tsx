@@ -29,6 +29,10 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
+import {
+  ToggleGroup,
+  ToggleGroupItem,
+} from "@/components/ui/toggle-group"
 
 // Set route segment config
 export const maxDuration = 60 // 60 seconds timeout
@@ -387,23 +391,34 @@ export default function Home() {
               <>
                 <div className="space-y-4">
                   <Card className="p-6">
-                    <div className="flex items-center justify-center space-x-4 mb-4">
-                      <span role="img" aria-label="US flag" className="text-xl">
-                        🇺🇸
-                      </span>
-                      <div className="flex items-center space-x-2">
-                        <Switch
-                          id="russian-mode"
-                          checked={isRussian}
-                          onCheckedChange={setIsRussian}
-                        />
-                        <Label htmlFor="russian-mode" className="text-sm font-medium">
-                          {isRussian ? " Русский" : "English"}
-                        </Label>
-                      </div>
-                      <span role="img" aria-label="Russian flag" className="text-xl">
-                        🇷🇺
-                      </span>
+                    <div className="flex items-center justify-center mb-4">
+                      <ToggleGroup
+                        type="single"
+                        value={isRussian ? "ru" : "en"}
+                        onValueChange={(value) => setIsRussian(value === "ru")}
+                        className="bg-muted rounded-lg p-1"
+                      >
+                        <ToggleGroupItem
+                          value="en"
+                          aria-label="English"
+                          className="flex items-center space-x-1 px-3 py-1.5 data-[state=on]:bg-background data-[state=on]:text-foreground rounded"
+                        >
+                          <span role="img" aria-label="US flag" className="text-sm">
+                            🇺🇸
+                          </span>
+                          <span className="text-sm font-medium">English</span>
+                        </ToggleGroupItem>
+                        <ToggleGroupItem
+                          value="ru"
+                          aria-label="Russian"
+                          className="flex items-center space-x-1 px-3 py-1.5 data-[state=on]:bg-background data-[state=on]:text-foreground rounded"
+                        >
+                          <span role="img" aria-label="Russian flag" className="text-sm">
+                            🇷🇺
+                          </span>
+                          <span className="text-sm font-medium">Русский</span>
+                        </ToggleGroupItem>
+                      </ToggleGroup>
                     </div>
                     <VoiceRecorder 
                       key={`voice-${voiceKey}`}
