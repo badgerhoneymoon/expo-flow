@@ -329,9 +329,26 @@ export default function Home() {
           <div className="space-y-8">
             <div className="space-y-2">
               <div className="space-y-2">
-                <label className="text-sm font-medium text-muted-foreground">
-                  Event Name *
-                </label>
+                <div className="flex items-center space-x-2">
+                  <label className="text-sm font-medium text-muted-foreground">
+                    Event Name *
+                  </label>
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-6 w-6 p-0">
+                        <Info className="h-4 w-4 text-muted-foreground" />
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Event Names as Workspaces (Beta)</DialogTitle>
+                        <DialogDescription className="space-y-4">
+                          <p>Currently, we use event names as separate workspaces for different users - no login required!</p>
+                        </DialogDescription>
+                      </DialogHeader>
+                    </DialogContent>
+                  </Dialog>
+                </div>
                 <Input
                   placeholder="Enter the trade show or event name..."
                   value={eventName}
