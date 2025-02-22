@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Input } from "@/components/ui/input"
 import { useState, useEffect } from "react"
-import { Upload, Loader2 } from "lucide-react"
+import { Upload, Loader2, Info } from "lucide-react"
 import { toast } from "sonner"
 import { uploadBusinessCard, uploadVoiceMemo } from "@/lib/storage/storage-client"
 import { createCapturedLead } from "@/actions/capture-lead-actions"
@@ -21,6 +21,14 @@ import { extractTextFromImage } from '@/actions/vision-actions'
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import { Card } from "@/components/ui/card"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
 
 // Set route segment config
 export const maxDuration = 60 // 60 seconds timeout
@@ -316,10 +324,20 @@ export default function Home() {
           
           <div className="space-y-8">
             <div className="space-y-2">
-              <div className="flex items-center justify-between mb-4">
+              <div className="space-y-2">
                 <label className="text-sm font-medium text-muted-foreground">
                   Event Name *
                 </label>
+                <Input
+                  placeholder="Enter the trade show or event name..."
+                  value={eventName}
+                  onChange={(e) => setEventName(e.target.value)}
+                  className="w-full"
+                  required
+                />
+              </div>
+
+              <div className="flex items-center justify-between mt-4">
                 <div className="flex items-center space-x-2">
                   <Switch
                     id="bulk-mode"
@@ -336,15 +354,23 @@ export default function Home() {
                   <Label htmlFor="bulk-mode" className="text-sm font-medium cursor-pointer">
                     Bulk Business Cards Mode
                   </Label>
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 p-0">
+                        <Info className="h-4 w-4 text-muted-foreground" />
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Bulk Business Cards Mode</DialogTitle>
+                        <DialogDescription>
+                          Use this mode when you have multiple business cards collected from an event that you want to process all at once. Limited to business cards only. No voice memos or text notes.
+                        </DialogDescription>
+                      </DialogHeader>
+                    </DialogContent>
+                  </Dialog>
                 </div>
               </div>
-              <Input
-                placeholder="Enter the trade show or event name..."
-                value={eventName}
-                onChange={(e) => setEventName(e.target.value)}
-                className="w-full"
-                required
-              />
             </div>
 
             <PhotoCapture 
