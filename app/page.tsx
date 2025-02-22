@@ -391,7 +391,7 @@ export default function Home() {
               <>
                 <div className="space-y-4">
                   <Card className="p-6">
-                    <div className="flex items-center justify-center mb-4">
+                    <div className="flex items-center justify-center mb-4 space-x-2">
                       <ToggleGroup
                         type="single"
                         value={isRussian ? "ru" : "en"}
@@ -419,6 +419,25 @@ export default function Home() {
                           <span className="text-sm font-medium">Русский</span>
                         </ToggleGroupItem>
                       </ToggleGroup>
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8 p-0">
+                            <Info className="h-4 w-4 text-muted-foreground" />
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle>Voice Recognition Language</DialogTitle>
+                            <DialogDescription className="space-y-4">
+                              <p>Select the language that matches the language you'll be speaking in your voice memo.</p>
+
+                              <p>For optimal voice recognition accuracy, make sure to switch to Russian if you plan to record your message in Russian.</p>
+
+                              <p>This setting affects only voice memo recognition and doesn't impact other features.</p>
+                            </DialogDescription>
+                          </DialogHeader>
+                        </DialogContent>
+                      </Dialog>
                     </div>
                     <VoiceRecorder 
                       key={`voice-${voiceKey}`}
