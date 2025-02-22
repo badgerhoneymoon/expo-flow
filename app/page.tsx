@@ -363,8 +363,12 @@ export default function Home() {
                     <DialogContent>
                       <DialogHeader>
                         <DialogTitle>Bulk Business Cards Mode</DialogTitle>
-                        <DialogDescription>
-                          Use this mode when you have multiple business cards collected from an event that you want to process all at once. Limited to business cards only. No voice memos or text notes.
+                        <DialogDescription className="space-y-4">
+                          <p>Use this mode when you have multiple business cards collected from an event that you want to process all at once.</p>
+
+                          <p>Limited to business cards only.</p>
+
+                          <p>No voice memos or text notes.</p>
                         </DialogDescription>
                       </DialogHeader>
                     </DialogContent>
