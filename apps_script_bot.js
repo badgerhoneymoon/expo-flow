@@ -1,10 +1,10 @@
 /*************************************
  *  1. Setup your constants here
  *************************************/
-var TELEGRAM_TOKEN = '7643307936:AAGaCAYGCLHNg08sebJFVRWKMt2DoPEG4Kc';
+var TELEGRAM_TOKEN = '';
 var TELEGRAM_API_URL = 'https://api.telegram.org/bot' + TELEGRAM_TOKEN + '/';
 var SECRET_CODE = 'secret';    // Replace with the exact code you expect
-var FILE_ID = '1s_iXW-wHUqB08Gokyxg907Ax9xQ98wKm';   
+var FILE_ID = '';   
 
 /*************************************
  *  2. Deploy as Web App and run startBot()
@@ -21,7 +21,7 @@ function getWebhookInfo() {
 
 function startBot() {
   var webhookUrl = TELEGRAM_API_URL + 'setWebhook?url=' + 
-    'https://script.google.com/macros/s/AKfycbyipKJUWkGPUi4XacVI_a4KcS3rbHS3XTdyH5JLe2fr-NEtaOt3vvABG5OUp2_VZCU/exec';
+    '';
   var response = UrlFetchApp.fetch(webhookUrl);
   logToSheet('Webhook set: ' + response.getContentText());
 }
